@@ -48,7 +48,7 @@ npm install
 
 ### 2. 環境変数の設定
 
-`.env.local.example`をコピーして`.env.local`を作成し、以下の環境変数を設定してください：
+`.env.example`をコピーして`.env.local`を作成し、以下の環境変数を設定してください：
 
 ```bash
 DIFY_API_KEY="YOUR_DIFY_API_KEY_HERE"
@@ -62,6 +62,31 @@ npm run dev
 ```
 
 ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
+
+## 📦 Vercelデプロイ
+
+### 1. Vercelプロジェクト作成
+
+```bash
+# Vercel CLIをインストール（未インストールの場合）
+npm i -g vercel
+
+# プロジェクトをデプロイ
+vercel
+```
+
+### 2. 環境変数の設定
+
+Vercelダッシュボードで以下の環境変数を設定：
+
+- `DIFY_API_KEY`: あなたのDify APIキー
+- `NEXT_PUBLIC_DIFY_API_URL`: `https://api.dify.ai/v1`
+
+### 3. プロダクションビルド
+
+```bash
+npm run build:production
+```
 
 ## 🔄 ワークフロー
 

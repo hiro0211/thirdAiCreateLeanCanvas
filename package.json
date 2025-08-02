@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "build:production": "npm run type-check && npm run lint && npm run build"
   },
   "dependencies": {
     "next": "14.0.0",

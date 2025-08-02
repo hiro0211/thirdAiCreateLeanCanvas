@@ -14,17 +14,59 @@ import {
 const DIFY_API_KEY = process.env.DIFY_API_KEY;
 const DIFY_API_URL = process.env.NEXT_PUBLIC_DIFY_API_URL;
 
-if (!DIFY_API_KEY) {
-  console.error("DIFY_API_KEY is not set in environment variables");
+// 環境変数のチェックは実行時に行う
+
+// セキュアなログ機能
+function logError(context: string, error: unknown, sensitiveData?: Record<string, any>) {
+  const timestamp = new Date().toISOString();
+  const errorId = Math.random().toString(36).substring(2, 15);
+  
+  // 本番環境用の安全なログ
+  const safeLog = {
+    errorId,
+    timestamp,
+    context,
+    message: error instanceof Error ? error.message : 'Unknown error',
+    type: error instanceof Error ? error.constructor.name : typeof error,
+    // スタックトレースは開発環境のみ
+    ...(process.env.NODE_ENV === 'development' && { 
+      stack: error instanceof Error ? error.stack : undefined 
+    })
+  };
+
+  // 機密情報をサニタイズして記録
+  if (sensitiveData) {
+    const sanitizedData = Object.keys(sensitiveData).reduce((acc, key) => {
+      if (key.toLowerCase().includes('key') || key.toLowerCase().includes('token')) {
+        acc[key] = '[REDACTED]';
+      } else if (typeof sensitiveData[key] === 'string' && sensitiveData[key].length > 100) {
+        acc[key] = sensitiveData[key].substring(0, 100) + '...[TRUNCATED]';
+      } else {
+        acc[key] = sensitiveData[key];
+      }
+      return acc;
+    }, {} as Record<string, any>);
+    
+    safeLog.data = sanitizedData;
+  }
+
+  // サーバーサイドでのみログ出力（クライアントには送信しない）
+  if (typeof window === 'undefined') {
+    console.error(`[${context}] Error ${errorId}:`, safeLog);
+  }
+
+  return errorId;
 }
 
-if (!DIFY_API_URL) {
-  console.error("NEXT_PUBLIC_DIFY_API_URL is not set in environment variables");
+function logInfo(context: string, message: string, data?: Record<string, any>) {
+  if (process.env.NODE_ENV === 'development') {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [${context}] ${message}`, data || '');
+  }
 }
 
 // デモ用のモックデータを生成
 function generateMockData(task: string, inputs: Record<string, any>): any {
-  console.log(`Generating mock data for task: ${task}`, inputs);
 
   switch (task) {
     case "persona":
@@ -181,7 +223,7 @@ async function callDifyAPI(
     !DIFY_API_KEY || DIFY_API_KEY === "" || DIFY_API_KEY === "demo";
 
   if (isDemoMode) {
-    console.log("🎭 Demo mode: Using mock data");
+    logInfo('DIFY_API', 'Using demo mode - mock data will be returned', { task, inputKeys: Object.keys(inputs) });
     // リアルなAPI呼び出しをシミュレート
     await new Promise((resolve) =>
       setTimeout(resolve, 1000 + Math.random() * 2000)
@@ -192,8 +234,6 @@ async function callDifyAPI(
   if (!DIFY_API_KEY || !DIFY_API_URL) {
     throw new Error("Dify API configuration is missing");
   }
-
-  console.log(`🚀 Calling Dify API for task: ${task}`, { inputs, query });
 
   // Difyチャットアプリケーション用のAPIエンドポイント
   const apiEndpoint = `${DIFY_API_URL}/chat-messages`;
@@ -210,14 +250,10 @@ async function callDifyAPI(
   };
 
   try {
-    console.log(`📤 Request to ${apiEndpoint}:`, {
-      url: apiEndpoint,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DIFY_API_KEY?.substring(0, 10)}...` // セキュリティのため一部のみ表示
-      },
-      body: requestBody
+    logInfo('DIFY_API', `Making API request to ${apiEndpoint}`, { 
+      task, 
+      inputKeys: Object.keys(inputs),
+      hasApiKey: !!DIFY_API_KEY 
     });
 
     const response = await fetch(apiEndpoint, {
@@ -227,38 +263,46 @@ async function callDifyAPI(
         Authorization: `Bearer ${DIFY_API_KEY}`,
       },
       body: JSON.stringify(requestBody),
-      signal: AbortSignal.timeout(120000), // 120秒のタイムアウト
+      signal: AbortSignal.timeout(60000), // 60秒のタイムアウト
     });
 
     const responseText = await response.text();
-    console.log(`📥 Response from ${apiEndpoint}:`, {
-      status: response.status,
-      statusText: response.statusText,
-      body: responseText,
-    });
 
     if (!response.ok) {
-      console.error("Dify API error response:", {
+      const errorId = logError('DIFY_API', new Error(`API request failed: ${response.status}`), {
         status: response.status,
         statusText: response.statusText,
-        errorText: responseText,
-        requestBody,
+        endpoint: apiEndpoint,
+        task,
+        responseLength: responseText.length
       });
-      throw new Error(`Dify API error: ${response.status} ${responseText}`);
+      throw new Error(`Dify API error: ${response.status}. Error ID: ${errorId}`);
     }
 
     let result;
     try {
       result = JSON.parse(responseText);
+      logInfo('DIFY_API', 'API request successful', { 
+        task, 
+        responseType: typeof result,
+        hasAnswer: !!result.answer 
+      });
     } catch (e) {
-      throw new Error(`Failed to parse JSON response: ${responseText}`);
+      const errorId = logError('DIFY_API', e, {
+        task,
+        responseLength: responseText.length,
+        responsePreview: responseText.substring(0, 200)
+      });
+      throw new Error(`Failed to parse JSON response. Error ID: ${errorId}`);
     }
 
     if (result.status === "failed") {
-      throw new Error(`Dify workflow failed: ${result.error || "Unknown error"}`);
+      const errorId = logError('DIFY_API', new Error('Dify workflow execution failed'), {
+        task,
+        difyError: result.error
+      });
+      throw new Error(`Dify workflow failed. Error ID: ${errorId}`);
     }
-
-    console.log(`✅ Successful response from ${apiEndpoint}:`, result);
 
     // Difyチャットアプリからのレスポンス処理
     if (result.answer) {
@@ -268,7 +312,6 @@ async function callDifyAPI(
         return parsedAnswer;
       } catch (e) {
         // JSONでない場合はテキストとして処理
-        console.warn("Failed to parse Dify answer as JSON:", result.answer);
         return { text: result.answer };
       }
     }
@@ -277,13 +320,19 @@ async function callDifyAPI(
     return result;
 
   } catch (error) {
-    console.error("Error calling Dify API:", error);
-    
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('Dify API request timed out. Please try again later.');
+      const errorId = logError('DIFY_API', error, { task, timeout: 60000 });
+      throw new Error(`Dify API request timed out. Error ID: ${errorId}`);
     }
     
-    throw error;
+    // 既にログが記録されたエラーかチェック
+    if (error instanceof Error && error.message.includes('Error ID:')) {
+      throw error;
+    }
+    
+    // 予期しないエラーをログに記録
+    const errorId = logError('DIFY_API', error, { task });
+    throw new Error(`Unexpected error occurred. Error ID: ${errorId}`);
   }
 }
 
@@ -291,6 +340,12 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { task } = body;
+
+    logInfo('API_HANDLER', `Processing request for task: ${task}`, { 
+      method: request.method,
+      url: request.url,
+      userAgent: request.headers.get('user-agent')?.substring(0, 100)
+    });
 
     let result: any;
 
@@ -316,7 +371,6 @@ export async function POST(request: NextRequest) {
           "persona"
         );
 
-        console.log("Persona generation result:", result);
 
         // Difyから返されるデータの様々な形式に対応
         let personas = [];
@@ -347,9 +401,14 @@ export async function POST(request: NextRequest) {
         }
 
         if (!Array.isArray(personas) || personas.length === 0) {
-          console.error("Failed to extract personas from result:", result);
+          const errorId = logError('DATA_PROCESSING', new Error('Invalid persona data structure'), {
+            task: 'persona',
+            resultType: typeof result,
+            resultKeys: Object.keys(result || {}),
+            personasType: typeof result.personas
+          });
           throw new Error(
-            `Difyからペルソナデータが返されませんでした。Difyワークフローが正しいJSON形式（{personas: [...]}）で応答するよう設定してください。実際の応答: ${JSON.stringify(result)}`
+            `Difyからペルソナデータが返されませんでした。Difyワークフローが正しいJSON形式（{personas: [...]}）で応答するよう設定してください。Error ID: ${errorId}`
           );
         }
 
@@ -406,9 +465,13 @@ export async function POST(request: NextRequest) {
         }
 
         if (!Array.isArray(businessIdeas) || businessIdeas.length === 0) {
-          console.error("Failed to extract business ideas from result:", result);
+          const errorId = logError('DATA_PROCESSING', new Error('Invalid business ideas data structure'), {
+            task: 'businessidea',
+            resultType: typeof result,
+            resultKeys: Object.keys(result || {})
+          });
           throw new Error(
-            `Difyからビジネスアイデアデータが返されませんでした。Difyワークフローが正しいJSON形式（{business_ideas: [...]}）で応答するよう設定してください。実際の応答: ${JSON.stringify(result)}`
+            `Difyからビジネスアイデアデータが返されませんでした。Difyワークフローが正しいJSON形式（{business_ideas: [...]}）で応答するよう設定してください。Error ID: ${errorId}`
           );
         }
 
@@ -470,9 +533,13 @@ export async function POST(request: NextRequest) {
         }
 
         if (!Array.isArray(productNames) || productNames.length === 0) {
-          console.error("Failed to extract product names from result:", result);
+          const errorId = logError('DATA_PROCESSING', new Error('Invalid product names data structure'), {
+            task: 'productname',
+            resultType: typeof result,
+            resultKeys: Object.keys(result || {})
+          });
           throw new Error(
-            `Difyからプロダクト名データが返されませんでした。Difyワークフローが正しいJSON形式（{product_names: [...]}）で応答するよう設定してください。実際の応答: ${JSON.stringify(result)}`
+            `Difyからプロダクト名データが返されませんでした。Difyワークフローが正しいJSON形式（{product_names: [...]}）で応答するよう設定してください。Error ID: ${errorId}`
           );
         }
 
@@ -539,9 +606,14 @@ export async function POST(request: NextRequest) {
         // 少なくとも一つのフィールドにデータがあることを確認
         const hasData = Object.values(canvasData).some(arr => Array.isArray(arr) && arr.length > 0);
         if (!hasData) {
-          console.error("Failed to extract canvas data from result:", result);
+          const errorId = logError('DATA_PROCESSING', new Error('Invalid lean canvas data structure'), {
+            task: 'canvas',
+            resultType: typeof result,
+            resultKeys: Object.keys(result || {}),
+            canvasDataKeys: Object.keys(canvasData)
+          });
           throw new Error(
-            `Difyからリーンキャンバスデータが返されませんでした。Difyワークフローが正しいJSON形式で応答するよう設定してください。実際の応答: ${JSON.stringify(result)}`
+            `Difyからリーンキャンバスデータが返されませんでした。Difyワークフローが正しいJSON形式で応答するよう設定してください。Error ID: ${errorId}`
           );
         }
 
@@ -561,11 +633,6 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error("Dify API Error:", {
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined,
-      timestamp: new Date().toISOString(),
-    });
 
     let errorMessage = "サーバーエラーが発生しました";
     let statusCode = 500;
