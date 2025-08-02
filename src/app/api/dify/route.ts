@@ -193,10 +193,87 @@ async function callDifyAPI(
     throw new Error("Dify API configuration is missing");
   }
 
-  // 実際のDify APIを呼び出す（現在は設定が不完全なのでエラーになる）
-  throw new Error(
-    "Dify APIの設定が完了していません。デモモードで動作を確認してください。.env.localのDIFY_API_KEYを空にするか'demo'に設定してください。"
-  );
+  console.log(`🚀 Calling Dify API for task: ${task}`, { inputs, query });
+
+  // Difyチャットアプリケーション用のAPIエンドポイント
+  const apiEndpoint = `${DIFY_API_URL}/chat-messages`;
+
+  const requestBody = {
+    inputs,
+    query: query || `Please perform task: ${task}`,
+    response_mode: "blocking",
+    user: "ai-lean-canvas-user",
+    conversation_id: "",
+  };
+
+  try {
+    console.log(`📤 Request to ${apiEndpoint}:`, requestBody);
+
+    const response = await fetch(apiEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${DIFY_API_KEY}`,
+      },
+      body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(120000), // 120秒のタイムアウト
+    });
+
+    const responseText = await response.text();
+    console.log(`📥 Response from ${apiEndpoint}:`, {
+      status: response.status,
+      statusText: response.statusText,
+      body: responseText,
+    });
+
+    if (!response.ok) {
+      console.error("Dify API error response:", {
+        status: response.status,
+        statusText: response.statusText,
+        errorText: responseText,
+        requestBody,
+      });
+      throw new Error(`Dify API error: ${response.status} ${responseText}`);
+    }
+
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      throw new Error(`Failed to parse JSON response: ${responseText}`);
+    }
+
+    if (result.status === "failed") {
+      throw new Error(`Dify workflow failed: ${result.error || "Unknown error"}`);
+    }
+
+    console.log(`✅ Successful response from ${apiEndpoint}:`, result);
+
+    // Difyチャットアプリからのレスポンス処理
+    if (result.answer) {
+      try {
+        // answerがJSON文字列の場合、パースして返す
+        const parsedAnswer = JSON.parse(result.answer);
+        return parsedAnswer;
+      } catch (e) {
+        // JSONでない場合はテキストとして処理
+        console.warn("Failed to parse Dify answer as JSON:", result.answer);
+        return { text: result.answer };
+      }
+    }
+
+    // 直接JSONオブジェクトが返される場合
+    return result;
+
+  } catch (error) {
+    console.error("Error calling Dify API:", error);
+    
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Dify API request timed out. Please try again later.');
+    }
+    
+    throw error;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -229,10 +306,38 @@ export async function POST(request: NextRequest) {
 
         console.log("Persona generation result:", result);
 
-        const personas = result.personas || result.text?.personas || [];
+        // Difyから返されるデータの様々な形式に対応
+        let personas = [];
+        
+        if (result.personas) {
+          personas = result.personas;
+        } else if (result.text && typeof result.text === 'string') {
+          // テキストレスポンスの場合はエラーとして扱う
+          throw new Error(`Difyからテキストレスポンスが返されました。JSON形式での応答が必要です: ${result.text}`);
+        } else if (Array.isArray(result)) {
+          // 配列が直接返された場合
+          personas = result;
+        } else {
+          // その他の形式を試行
+          personas = result.data || result.output || [];
+        }
+
+        // ペルソナデータの正規化
+        if (Array.isArray(personas)) {
+          personas = personas.map((persona: any, index: number) => ({
+            id: persona.id || index + 1,
+            description: persona.description || persona.text || String(persona),
+            needs: {
+              explicit: persona.needs?.explicit || persona.explicit_needs || persona.explicit || '',
+              implicit: persona.needs?.implicit || persona.implicit_needs || persona.implicit || ''
+            }
+          }));
+        }
+
         if (!Array.isArray(personas) || personas.length === 0) {
+          console.error("Failed to extract personas from result:", result);
           throw new Error(
-            "Difyからペルソナデータが返されませんでした。ワークフローの設定を確認してください。"
+            `Difyからペルソナデータが返されませんでした。Difyワークフローが正しいJSON形式（{personas: [...]}）で応答するよう設定してください。実際の応答: ${JSON.stringify(result)}`
           );
         }
 
@@ -266,8 +371,37 @@ export async function POST(request: NextRequest) {
           "businessidea"
         );
 
+        // ビジネスアイデアデータの正規化
+        let businessIdeas = [];
+        
+        if (result.business_ideas) {
+          businessIdeas = result.business_ideas;
+        } else if (result.ideas) {
+          businessIdeas = result.ideas;
+        } else if (Array.isArray(result)) {
+          businessIdeas = result;
+        } else {
+          businessIdeas = result.data || result.output || [];
+        }
+
+        // データの正規化
+        if (Array.isArray(businessIdeas)) {
+          businessIdeas = businessIdeas.map((idea: any, index: number) => ({
+            id: idea.id || index + 1,
+            idea_text: idea.idea_text || idea.idea || idea.text || String(idea),
+            osborn_hint: idea.osborn_hint || idea.hint || idea.reasoning || ''
+          }));
+        }
+
+        if (!Array.isArray(businessIdeas) || businessIdeas.length === 0) {
+          console.error("Failed to extract business ideas from result:", result);
+          throw new Error(
+            `Difyからビジネスアイデアデータが返されませんでした。Difyワークフローが正しいJSON形式（{business_ideas: [...]}）で応答するよう設定してください。実際の応答: ${JSON.stringify(result)}`
+          );
+        }
+
         const businessIdeaResponse: DifyBusinessIdeaResponse = {
-          business_ideas: result.business_ideas || [],
+          business_ideas: businessIdeas,
         };
 
         return NextResponse.json({
@@ -299,8 +433,39 @@ export async function POST(request: NextRequest) {
           "productname"
         );
 
+        // プロダクト名データの正規化
+        let productNames = [];
+        
+        if (result.product_names) {
+          productNames = result.product_names;
+        } else if (result.names) {
+          productNames = result.names;
+        } else if (Array.isArray(result)) {
+          productNames = result;
+        } else {
+          productNames = result.data || result.output || [];
+        }
+
+        // データの正規化
+        if (Array.isArray(productNames)) {
+          productNames = productNames.map((name: any, index: number) => ({
+            id: name.id || index + 1,
+            name: name.name || name.product_name || String(name),
+            reason: name.reason || name.reasoning || name.explanation || '',
+            pros: name.pros || name.advantages || name.benefits || '',
+            cons: name.cons || name.disadvantages || name.drawbacks || ''
+          }));
+        }
+
+        if (!Array.isArray(productNames) || productNames.length === 0) {
+          console.error("Failed to extract product names from result:", result);
+          throw new Error(
+            `Difyからプロダクト名データが返されませんでした。Difyワークフローが正しいJSON形式（{product_names: [...]}）で応答するよう設定してください。実際の応答: ${JSON.stringify(result)}`
+          );
+        }
+
         const productNameResponse: DifyProductNameResponse = {
-          product_names: result.product_names || [],
+          product_names: productNames,
         };
 
         return NextResponse.json({
@@ -332,22 +497,41 @@ export async function POST(request: NextRequest) {
           "canvas"
         );
 
+        // リーンキャンバスデータの正規化
         const canvasData: LeanCanvasData = {
-          problem: result.problem || [],
-          solution: result.solution || [],
-          keyMetrics: result.key_metrics || result.keyMetrics || [],
-          uniqueValueProposition:
-            result.unique_value_proposition ||
-            result.uniqueValueProposition ||
-            [],
-          unfairAdvantage:
-            result.unfair_advantage || result.unfairAdvantage || [],
-          channels: result.channels || [],
-          customerSegments:
-            result.customer_segments || result.customerSegments || [],
-          costStructure: result.cost_structure || result.costStructure || [],
-          revenueStreams: result.revenue_streams || result.revenueStreams || [],
+          problem: Array.isArray(result.problem) ? result.problem : 
+                  Array.isArray(result.problems) ? result.problems : [],
+          solution: Array.isArray(result.solution) ? result.solution : 
+                   Array.isArray(result.solutions) ? result.solutions : [],
+          keyMetrics: Array.isArray(result.key_metrics) ? result.key_metrics : 
+                     Array.isArray(result.keyMetrics) ? result.keyMetrics : 
+                     Array.isArray(result.metrics) ? result.metrics : [],
+          uniqueValueProposition: Array.isArray(result.unique_value_proposition) ? result.unique_value_proposition :
+                                 Array.isArray(result.uniqueValueProposition) ? result.uniqueValueProposition :
+                                 Array.isArray(result.value_proposition) ? result.value_proposition : [],
+          unfairAdvantage: Array.isArray(result.unfair_advantage) ? result.unfair_advantage :
+                          Array.isArray(result.unfairAdvantage) ? result.unfairAdvantage :
+                          Array.isArray(result.advantage) ? result.advantage : [],
+          channels: Array.isArray(result.channels) ? result.channels : [],
+          customerSegments: Array.isArray(result.customer_segments) ? result.customer_segments :
+                           Array.isArray(result.customerSegments) ? result.customerSegments :
+                           Array.isArray(result.segments) ? result.segments : [],
+          costStructure: Array.isArray(result.cost_structure) ? result.cost_structure :
+                        Array.isArray(result.costStructure) ? result.costStructure :
+                        Array.isArray(result.costs) ? result.costs : [],
+          revenueStreams: Array.isArray(result.revenue_streams) ? result.revenue_streams :
+                         Array.isArray(result.revenueStreams) ? result.revenueStreams :
+                         Array.isArray(result.revenue) ? result.revenue : [],
         };
+
+        // 少なくとも一つのフィールドにデータがあることを確認
+        const hasData = Object.values(canvasData).some(arr => Array.isArray(arr) && arr.length > 0);
+        if (!hasData) {
+          console.error("Failed to extract canvas data from result:", result);
+          throw new Error(
+            `Difyからリーンキャンバスデータが返されませんでした。Difyワークフローが正しいJSON形式で応答するよう設定してください。実際の応答: ${JSON.stringify(result)}`
+          );
+        }
 
         return NextResponse.json({
           success: true,
