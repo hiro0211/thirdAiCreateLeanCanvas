@@ -1,15 +1,4 @@
 {
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "maxDuration": 60
-    }
-  },
   "env": {
     "NEXT_PUBLIC_DIFY_API_URL": "https://api.dify.ai/v1"
   }
