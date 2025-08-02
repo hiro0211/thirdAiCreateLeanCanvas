@@ -17,41 +17,54 @@ const DIFY_API_URL = process.env.NEXT_PUBLIC_DIFY_API_URL;
 // 環境変数のチェックは実行時に行う
 
 // セキュアなログ機能
-function logError(context: string, error: unknown, sensitiveData?: Record<string, any>) {
+function logError(
+  context: string,
+  error: unknown,
+  sensitiveData?: Record<string, any>
+) {
   const timestamp = new Date().toISOString();
   const errorId = Math.random().toString(36).substring(2, 15);
-  
+
   // 本番環境用の安全なログ
-  const safeLog = {
+  const safeLog: Record<string, any> = {
     errorId,
     timestamp,
     context,
-    message: error instanceof Error ? error.message : 'Unknown error',
+    message: error instanceof Error ? error.message : "Unknown error",
     type: error instanceof Error ? error.constructor.name : typeof error,
     // スタックトレースは開発環境のみ
-    ...(process.env.NODE_ENV === 'development' && { 
-      stack: error instanceof Error ? error.stack : undefined 
-    })
+    ...(process.env.NODE_ENV === "development" && {
+      stack: error instanceof Error ? error.stack : undefined,
+    }),
   };
 
   // 機密情報をサニタイズして記録
   if (sensitiveData) {
-    const sanitizedData = Object.keys(sensitiveData).reduce((acc, key) => {
-      if (key.toLowerCase().includes('key') || key.toLowerCase().includes('token')) {
-        acc[key] = '[REDACTED]';
-      } else if (typeof sensitiveData[key] === 'string' && sensitiveData[key].length > 100) {
-        acc[key] = sensitiveData[key].substring(0, 100) + '...[TRUNCATED]';
-      } else {
-        acc[key] = sensitiveData[key];
-      }
-      return acc;
-    }, {} as Record<string, any>);
-    
+    const sanitizedData = Object.keys(sensitiveData).reduce(
+      (acc, key) => {
+        if (
+          key.toLowerCase().includes("key") ||
+          key.toLowerCase().includes("token")
+        ) {
+          acc[key] = "[REDACTED]";
+        } else if (
+          typeof sensitiveData[key] === "string" &&
+          sensitiveData[key].length > 100
+        ) {
+          acc[key] = sensitiveData[key].substring(0, 100) + "...[TRUNCATED]";
+        } else {
+          acc[key] = sensitiveData[key];
+        }
+        return acc;
+      },
+      {} as Record<string, any>
+    );
+
     safeLog.data = sanitizedData;
   }
 
   // サーバーサイドでのみログ出力（クライアントには送信しない）
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     console.error(`[${context}] Error ${errorId}:`, safeLog);
   }
 
@@ -59,15 +72,14 @@ function logError(context: string, error: unknown, sensitiveData?: Record<string
 }
 
 function logInfo(context: string, message: string, data?: Record<string, any>) {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] [${context}] ${message}`, data || '');
+    console.log(`[${timestamp}] [${context}] ${message}`, data || "");
   }
 }
 
 // デモ用のモックデータを生成
 function generateMockData(task: string, inputs: Record<string, any>): any {
-
   switch (task) {
     case "persona":
       return {
@@ -223,7 +235,10 @@ async function callDifyAPI(
     !DIFY_API_KEY || DIFY_API_KEY === "" || DIFY_API_KEY === "demo";
 
   if (isDemoMode) {
-    logInfo('DIFY_API', 'Using demo mode - mock data will be returned', { task, inputKeys: Object.keys(inputs) });
+    logInfo("DIFY_API", "Using demo mode - mock data will be returned", {
+      task,
+      inputKeys: Object.keys(inputs),
+    });
     // リアルなAPI呼び出しをシミュレート
     await new Promise((resolve) =>
       setTimeout(resolve, 1000 + Math.random() * 2000)
@@ -241,7 +256,7 @@ async function callDifyAPI(
   const requestBody = {
     inputs: {
       ...inputs,
-      task: task // Difyワークフローで必要とされるtaskパラメータを追加
+      task: task, // Difyワークフローで必要とされるtaskパラメータを追加
     },
     query: query || `Please perform task: ${task}`,
     response_mode: "blocking",
@@ -250,10 +265,10 @@ async function callDifyAPI(
   };
 
   try {
-    logInfo('DIFY_API', `Making API request to ${apiEndpoint}`, { 
-      task, 
+    logInfo("DIFY_API", `Making API request to ${apiEndpoint}`, {
+      task,
       inputKeys: Object.keys(inputs),
-      hasApiKey: !!DIFY_API_KEY 
+      hasApiKey: !!DIFY_API_KEY,
     });
 
     const response = await fetch(apiEndpoint, {
@@ -269,38 +284,48 @@ async function callDifyAPI(
     const responseText = await response.text();
 
     if (!response.ok) {
-      const errorId = logError('DIFY_API', new Error(`API request failed: ${response.status}`), {
-        status: response.status,
-        statusText: response.statusText,
-        endpoint: apiEndpoint,
-        task,
-        responseLength: responseText.length
-      });
-      throw new Error(`Dify API error: ${response.status}. Error ID: ${errorId}`);
+      const errorId = logError(
+        "DIFY_API",
+        new Error(`API request failed: ${response.status}`),
+        {
+          status: response.status,
+          statusText: response.statusText,
+          endpoint: apiEndpoint,
+          task,
+          responseLength: responseText.length,
+        }
+      );
+      throw new Error(
+        `Dify API error: ${response.status}. Error ID: ${errorId}`
+      );
     }
 
     let result;
     try {
       result = JSON.parse(responseText);
-      logInfo('DIFY_API', 'API request successful', { 
-        task, 
+      logInfo("DIFY_API", "API request successful", {
+        task,
         responseType: typeof result,
-        hasAnswer: !!result.answer 
+        hasAnswer: !!result.answer,
       });
     } catch (e) {
-      const errorId = logError('DIFY_API', e, {
+      const errorId = logError("DIFY_API", e, {
         task,
         responseLength: responseText.length,
-        responsePreview: responseText.substring(0, 200)
+        responsePreview: responseText.substring(0, 200),
       });
       throw new Error(`Failed to parse JSON response. Error ID: ${errorId}`);
     }
 
     if (result.status === "failed") {
-      const errorId = logError('DIFY_API', new Error('Dify workflow execution failed'), {
-        task,
-        difyError: result.error
-      });
+      const errorId = logError(
+        "DIFY_API",
+        new Error("Dify workflow execution failed"),
+        {
+          task,
+          difyError: result.error,
+        }
+      );
       throw new Error(`Dify workflow failed. Error ID: ${errorId}`);
     }
 
@@ -318,20 +343,19 @@ async function callDifyAPI(
 
     // 直接JSONオブジェクトが返される場合
     return result;
-
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      const errorId = logError('DIFY_API', error, { task, timeout: 60000 });
+    if (error instanceof Error && error.name === "AbortError") {
+      const errorId = logError("DIFY_API", error, { task, timeout: 60000 });
       throw new Error(`Dify API request timed out. Error ID: ${errorId}`);
     }
-    
+
     // 既にログが記録されたエラーかチェック
-    if (error instanceof Error && error.message.includes('Error ID:')) {
+    if (error instanceof Error && error.message.includes("Error ID:")) {
       throw error;
     }
-    
+
     // 予期しないエラーをログに記録
-    const errorId = logError('DIFY_API', error, { task });
+    const errorId = logError("DIFY_API", error, { task });
     throw new Error(`Unexpected error occurred. Error ID: ${errorId}`);
   }
 }
@@ -341,10 +365,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { task } = body;
 
-    logInfo('API_HANDLER', `Processing request for task: ${task}`, { 
+    logInfo("API_HANDLER", `Processing request for task: ${task}`, {
       method: request.method,
       url: request.url,
-      userAgent: request.headers.get('user-agent')?.substring(0, 100)
+      userAgent: request.headers.get("user-agent")?.substring(0, 100),
     });
 
     let result: any;
@@ -371,15 +395,16 @@ export async function POST(request: NextRequest) {
           "persona"
         );
 
-
         // Difyから返されるデータの様々な形式に対応
         let personas = [];
-        
+
         if (result.personas) {
           personas = result.personas;
-        } else if (result.text && typeof result.text === 'string') {
+        } else if (result.text && typeof result.text === "string") {
           // テキストレスポンスの場合はエラーとして扱う
-          throw new Error(`Difyからテキストレスポンスが返されました。JSON形式での応答が必要です: ${result.text}`);
+          throw new Error(
+            `Difyからテキストレスポンスが返されました。JSON形式での応答が必要です: ${result.text}`
+          );
         } else if (Array.isArray(result)) {
           // 配列が直接返された場合
           personas = result;
@@ -394,19 +419,31 @@ export async function POST(request: NextRequest) {
             id: persona.id || index + 1,
             description: persona.description || persona.text || String(persona),
             needs: {
-              explicit: persona.needs?.explicit || persona.explicit_needs || persona.explicit || '',
-              implicit: persona.needs?.implicit || persona.implicit_needs || persona.implicit || ''
-            }
+              explicit:
+                persona.needs?.explicit ||
+                persona.explicit_needs ||
+                persona.explicit ||
+                "",
+              implicit:
+                persona.needs?.implicit ||
+                persona.implicit_needs ||
+                persona.implicit ||
+                "",
+            },
           }));
         }
 
         if (!Array.isArray(personas) || personas.length === 0) {
-          const errorId = logError('DATA_PROCESSING', new Error('Invalid persona data structure'), {
-            task: 'persona',
-            resultType: typeof result,
-            resultKeys: Object.keys(result || {}),
-            personasType: typeof result.personas
-          });
+          const errorId = logError(
+            "DATA_PROCESSING",
+            new Error("Invalid persona data structure"),
+            {
+              task: "persona",
+              resultType: typeof result,
+              resultKeys: Object.keys(result || {}),
+              personasType: typeof result.personas,
+            }
+          );
           throw new Error(
             `Difyからペルソナデータが返されませんでした。Difyワークフローが正しいJSON形式（{personas: [...]}）で応答するよう設定してください。Error ID: ${errorId}`
           );
@@ -444,7 +481,7 @@ export async function POST(request: NextRequest) {
 
         // ビジネスアイデアデータの正規化
         let businessIdeas = [];
-        
+
         if (result.business_ideas) {
           businessIdeas = result.business_ideas;
         } else if (result.ideas) {
@@ -460,16 +497,20 @@ export async function POST(request: NextRequest) {
           businessIdeas = businessIdeas.map((idea: any, index: number) => ({
             id: idea.id || index + 1,
             idea_text: idea.idea_text || idea.idea || idea.text || String(idea),
-            osborn_hint: idea.osborn_hint || idea.hint || idea.reasoning || ''
+            osborn_hint: idea.osborn_hint || idea.hint || idea.reasoning || "",
           }));
         }
 
         if (!Array.isArray(businessIdeas) || businessIdeas.length === 0) {
-          const errorId = logError('DATA_PROCESSING', new Error('Invalid business ideas data structure'), {
-            task: 'businessidea',
-            resultType: typeof result,
-            resultKeys: Object.keys(result || {})
-          });
+          const errorId = logError(
+            "DATA_PROCESSING",
+            new Error("Invalid business ideas data structure"),
+            {
+              task: "businessidea",
+              resultType: typeof result,
+              resultKeys: Object.keys(result || {}),
+            }
+          );
           throw new Error(
             `Difyからビジネスアイデアデータが返されませんでした。Difyワークフローが正しいJSON形式（{business_ideas: [...]}）で応答するよう設定してください。Error ID: ${errorId}`
           );
@@ -510,7 +551,7 @@ export async function POST(request: NextRequest) {
 
         // プロダクト名データの正規化
         let productNames = [];
-        
+
         if (result.product_names) {
           productNames = result.product_names;
         } else if (result.names) {
@@ -526,18 +567,22 @@ export async function POST(request: NextRequest) {
           productNames = productNames.map((name: any, index: number) => ({
             id: name.id || index + 1,
             name: name.name || name.product_name || String(name),
-            reason: name.reason || name.reasoning || name.explanation || '',
-            pros: name.pros || name.advantages || name.benefits || '',
-            cons: name.cons || name.disadvantages || name.drawbacks || ''
+            reason: name.reason || name.reasoning || name.explanation || "",
+            pros: name.pros || name.advantages || name.benefits || "",
+            cons: name.cons || name.disadvantages || name.drawbacks || "",
           }));
         }
 
         if (!Array.isArray(productNames) || productNames.length === 0) {
-          const errorId = logError('DATA_PROCESSING', new Error('Invalid product names data structure'), {
-            task: 'productname',
-            resultType: typeof result,
-            resultKeys: Object.keys(result || {})
-          });
+          const errorId = logError(
+            "DATA_PROCESSING",
+            new Error("Invalid product names data structure"),
+            {
+              task: "productname",
+              resultType: typeof result,
+              resultKeys: Object.keys(result || {}),
+            }
+          );
           throw new Error(
             `Difyからプロダクト名データが返されませんでした。Difyワークフローが正しいJSON形式（{product_names: [...]}）で応答するよう設定してください。Error ID: ${errorId}`
           );
@@ -578,40 +623,76 @@ export async function POST(request: NextRequest) {
 
         // リーンキャンバスデータの正規化
         const canvasData: LeanCanvasData = {
-          problem: Array.isArray(result.problem) ? result.problem : 
-                  Array.isArray(result.problems) ? result.problems : [],
-          solution: Array.isArray(result.solution) ? result.solution : 
-                   Array.isArray(result.solutions) ? result.solutions : [],
-          keyMetrics: Array.isArray(result.key_metrics) ? result.key_metrics : 
-                     Array.isArray(result.keyMetrics) ? result.keyMetrics : 
-                     Array.isArray(result.metrics) ? result.metrics : [],
-          uniqueValueProposition: Array.isArray(result.unique_value_proposition) ? result.unique_value_proposition :
-                                 Array.isArray(result.uniqueValueProposition) ? result.uniqueValueProposition :
-                                 Array.isArray(result.value_proposition) ? result.value_proposition : [],
-          unfairAdvantage: Array.isArray(result.unfair_advantage) ? result.unfair_advantage :
-                          Array.isArray(result.unfairAdvantage) ? result.unfairAdvantage :
-                          Array.isArray(result.advantage) ? result.advantage : [],
+          problem: Array.isArray(result.problem)
+            ? result.problem
+            : Array.isArray(result.problems)
+              ? result.problems
+              : [],
+          solution: Array.isArray(result.solution)
+            ? result.solution
+            : Array.isArray(result.solutions)
+              ? result.solutions
+              : [],
+          keyMetrics: Array.isArray(result.key_metrics)
+            ? result.key_metrics
+            : Array.isArray(result.keyMetrics)
+              ? result.keyMetrics
+              : Array.isArray(result.metrics)
+                ? result.metrics
+                : [],
+          uniqueValueProposition: Array.isArray(result.unique_value_proposition)
+            ? result.unique_value_proposition
+            : Array.isArray(result.uniqueValueProposition)
+              ? result.uniqueValueProposition
+              : Array.isArray(result.value_proposition)
+                ? result.value_proposition
+                : [],
+          unfairAdvantage: Array.isArray(result.unfair_advantage)
+            ? result.unfair_advantage
+            : Array.isArray(result.unfairAdvantage)
+              ? result.unfairAdvantage
+              : Array.isArray(result.advantage)
+                ? result.advantage
+                : [],
           channels: Array.isArray(result.channels) ? result.channels : [],
-          customerSegments: Array.isArray(result.customer_segments) ? result.customer_segments :
-                           Array.isArray(result.customerSegments) ? result.customerSegments :
-                           Array.isArray(result.segments) ? result.segments : [],
-          costStructure: Array.isArray(result.cost_structure) ? result.cost_structure :
-                        Array.isArray(result.costStructure) ? result.costStructure :
-                        Array.isArray(result.costs) ? result.costs : [],
-          revenueStreams: Array.isArray(result.revenue_streams) ? result.revenue_streams :
-                         Array.isArray(result.revenueStreams) ? result.revenueStreams :
-                         Array.isArray(result.revenue) ? result.revenue : [],
+          customerSegments: Array.isArray(result.customer_segments)
+            ? result.customer_segments
+            : Array.isArray(result.customerSegments)
+              ? result.customerSegments
+              : Array.isArray(result.segments)
+                ? result.segments
+                : [],
+          costStructure: Array.isArray(result.cost_structure)
+            ? result.cost_structure
+            : Array.isArray(result.costStructure)
+              ? result.costStructure
+              : Array.isArray(result.costs)
+                ? result.costs
+                : [],
+          revenueStreams: Array.isArray(result.revenue_streams)
+            ? result.revenue_streams
+            : Array.isArray(result.revenueStreams)
+              ? result.revenueStreams
+              : Array.isArray(result.revenue)
+                ? result.revenue
+                : [],
         };
 
         // 少なくとも一つのフィールドにデータがあることを確認
-        const hasData = Object.values(canvasData).some(arr => Array.isArray(arr) && arr.length > 0);
+        const hasData = Object.values(canvasData).some(
+          (arr) => Array.isArray(arr) && arr.length > 0
+        );
         if (!hasData) {
-          const errorId = logError('DATA_PROCESSING', new Error('Invalid lean canvas data structure'), {
-            task: 'canvas',
-            resultType: typeof result,
-            resultKeys: Object.keys(result || {}),
-            canvasDataKeys: Object.keys(canvasData)
-          });
+          const errorId = logError(
+            "DATA_PROCESSING",
+            new Error("Invalid lean canvas data structure"),
+            {
+              task: "canvas",
+              resultType: typeof result,
+              resultKeys: Object.keys(result || {}),
+              canvasDataKeys: Object.keys(canvasData),
+            }
+          );
           throw new Error(
             `Difyからリーンキャンバスデータが返されませんでした。Difyワークフローが正しいJSON形式で応答するよう設定してください。Error ID: ${errorId}`
           );
@@ -633,7 +714,6 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-
     let errorMessage = "サーバーエラーが発生しました";
     let statusCode = 500;
 
