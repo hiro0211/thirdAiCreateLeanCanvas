@@ -264,6 +264,13 @@ async function callDifyAPI(
     conversation_id: "", // 会話を継続しない場合は空文字
   };
 
+  // デバッグ用：Difyに送信するリクエストボディをログ出力
+  if (task === "businessidea") {
+    console.log("=== DIFY API REQUEST BODY ===");
+    console.log("Full request body:", JSON.stringify(requestBody, null, 2));
+    console.log("=============================");
+  }
+
   try {
     logInfo("DIFY_API", `Making API request to ${apiEndpoint}`, {
       task,
@@ -470,6 +477,12 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
+
+        // デバッグ用：送信するペルソナデータをログ出力
+        console.log("=== BUSINESS IDEA REQUEST DEBUG ===");
+        console.log("Received persona data:", JSON.stringify(persona, null, 2));
+        console.log("Sending to Dify with persona_data:", JSON.stringify(persona));
+        console.log("===================================");
 
         result = await callDifyAPI(
           {
