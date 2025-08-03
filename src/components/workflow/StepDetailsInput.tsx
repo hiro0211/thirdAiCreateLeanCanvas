@@ -84,7 +84,7 @@ export function StepDetailsInput() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6" data-tutorial="product-details">
           {error && (
             <motion.div
               initial={{ opacity: 0, x: -20 }}

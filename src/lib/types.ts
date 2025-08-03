@@ -100,3 +100,22 @@ export interface ApiResponse<T> {
   data?: T;
   error?: ApiError;
 }
+
+// チュートリアル関連の型定義
+export interface TutorialStep {
+  id: string;
+  title: string;
+  description: string;
+  target?: string; // CSS セレクタ
+  content: string;
+  position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  showSkip?: boolean;
+  isLast?: boolean;
+}
+
+export interface TutorialState {
+  isActive: boolean;
+  currentStepIndex: number;
+  hasCompleted: boolean;
+  isSkipped: boolean;
+}

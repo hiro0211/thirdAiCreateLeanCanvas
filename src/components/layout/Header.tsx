@@ -1,18 +1,24 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Sparkles, RotateCcw } from 'lucide-react';
+import { Sparkles, RotateCcw, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
 import { useWorkflowStore } from '@/stores/workflow-store';
+import { useTutorialStore } from '@/stores/workflow-store';
 
 export function Header() {
   const { currentStep, resetWorkflow } = useWorkflowStore();
+  const { startTutorial } = useTutorialStore();
 
   const handleReset = () => {
     if (window.confirm('ワークフローをリセットして最初からやり直しますか？')) {
       resetWorkflow();
     }
+  };
+
+  const handleStartTutorial = () => {
+    startTutorial();
   };
 
   return (
@@ -64,7 +70,21 @@ export function Header() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2" data-tutorial="header-actions">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleStartTutorial}
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border-blue-200 dark:border-blue-800"
+            >
+              <HelpCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span className="hidden sm:inline text-blue-600 dark:text-blue-400">チュートリアル</span>
+            </Button>
+          </motion.div>
           {currentStep !== 'keyword' && (
             <motion.div
               whileHover={{ scale: 1.05 }}

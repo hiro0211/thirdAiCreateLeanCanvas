@@ -72,7 +72,7 @@ export function StepKeywordInput() {
             <Label htmlFor="keyword" className="text-base font-semibold text-gray-700">
               ビジネスキーワードを入力してください
             </Label>
-            <div className="relative">
+            <div className="relative" data-tutorial="keyword-input">
               <Input
                 id="keyword"
                 value={localKeyword}
@@ -114,6 +114,7 @@ export function StepKeywordInput() {
               disabled={!localKeyword.trim() || isLoading}
               size="lg"
               className="w-full text-lg py-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              data-tutorial="generate-personas"
             >
               {isLoading ? (
                 <motion.div

@@ -9,6 +9,8 @@ import { StepBusinessIdeaSelection } from '@/components/workflow/StepBusinessIde
 import { StepDetailsInput } from '@/components/workflow/StepDetailsInput';
 import { StepProductNameSelection } from '@/components/workflow/StepProductNameSelection';
 import { StepLeanCanvasDisplay } from '@/components/workflow/StepLeanCanvasDisplay';
+import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
+import { TutorialGuide } from '@/components/tutorial/TutorialGuide';
 import { useWorkflowStore } from '@/stores/workflow-store';
 
 const stepComponents = {
@@ -25,29 +27,30 @@ export default function HomePage() {
   const CurrentStepComponent = stepComponents[currentStep];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 dark:from-slate-900 dark:via-blue-900/30 dark:to-purple-900/30">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        {/* Progress Stepper */}
-        <div className="no-print">
-          <WorkflowStepper currentStep={currentStep} />
-        </div>
+    <TutorialProvider>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 dark:from-slate-900 dark:via-blue-900/30 dark:to-purple-900/30">
+        <Header />
+        
+        <main className="container mx-auto px-4 py-8">
+          {/* Progress Stepper */}
+          <div className="no-print">
+            <WorkflowStepper currentStep={currentStep} />
+          </div>
 
-        {/* Step Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="mt-8"
-          >
-            <CurrentStepComponent />
-          </motion.div>
-        </AnimatePresence>
-      </main>
+          {/* Step Content */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="mt-8"
+            >
+              <CurrentStepComponent />
+            </motion.div>
+          </AnimatePresence>
+        </main>
 
       {/* Background Decorations */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -108,6 +111,10 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Tutorial Guide */}
+      <TutorialGuide />
     </div>
+    </TutorialProvider>
   );
 }
