@@ -255,8 +255,8 @@ async function callDifyAPI(
 
   const requestBody = {
     inputs: {
+      task: task, // Difyワークフローで必要とされるtaskパラメータ
       ...inputs,
-      task: task, // Difyワークフローで必要とされるtaskパラメータを追加
     },
     query: query || `Please perform task: ${task}`,
     response_mode: "blocking",
@@ -264,11 +264,12 @@ async function callDifyAPI(
     conversation_id: "", // 会話を継続しない場合は空文字
   };
 
-  // デバッグ用：Difyに送信するリクエストボディをログ出力
-  if (task === "businessidea") {
-    console.log("=== DIFY API REQUEST BODY ===");
-    console.log("Full request body:", JSON.stringify(requestBody, null, 2));
-    console.log("=============================");
+  // 本番環境用：最小限のログ記録
+  if (process.env.NODE_ENV === "development") {
+    logInfo("DIFY_API_REQUEST", `Request for task: ${task}`, {
+      endpoint: apiEndpoint,
+      inputKeys: Object.keys(inputs),
+    });
   }
 
   try {
@@ -300,6 +301,10 @@ async function callDifyAPI(
           endpoint: apiEndpoint,
           task,
           responseLength: responseText.length,
+          // 本番環境では応答内容を記録しない（機密情報保護）
+          ...(process.env.NODE_ENV === "development" && {
+            responseBody: responseText,
+          }),
         }
       );
       throw new Error(
@@ -478,17 +483,19 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // デバッグ用：送信するペルソナデータをログ出力
-        console.log("=== BUSINESS IDEA REQUEST DEBUG ===");
-        console.log("Received persona data:", JSON.stringify(persona, null, 2));
-        console.log("Sending to Dify with persona_data:", JSON.stringify(persona));
-        console.log("===================================");
+        // 本番環境用：最小限のログ記録
+        if (process.env.NODE_ENV === "development") {
+          logInfo("BUSINESS_IDEA_REQUEST", "Processing business idea generation", {
+            personaId: persona?.id,
+            hasPersonaData: !!persona,
+          });
+        }
 
         result = await callDifyAPI(
           {
-            persona_data: JSON.stringify(persona),
+            persona: JSON.stringify(persona),
           },
-          `次のペルソナに基づいて10個のビジネスアイデアを生成してください: ${JSON.stringify(persona)}。JSON形式で {business_ideas: [...]} として返してください。`,
+          `次のペルソナに基づいて10個のビジネスアイデアを生成してください。JSON形式で {business_ideas: [...]} として返してください。`,
           "businessidea"
         );
 
@@ -554,11 +561,11 @@ export async function POST(request: NextRequest) {
 
         result = await callDifyAPI(
           {
-            persona_data: JSON.stringify(persona),
-            business_idea_data: JSON.stringify(business_idea),
-            product_details_data: JSON.stringify(product_details),
+            persona: JSON.stringify(persona),
+            business_idea: JSON.stringify(business_idea),
+            product_details: JSON.stringify(product_details),
           },
-          `以下の情報に基づいて10個のプロダクト名を生成してください。ペルソナ: ${JSON.stringify(persona)}、ビジネスアイデア: ${JSON.stringify(business_idea)}、商品詳細: ${JSON.stringify(product_details)}。JSON形式で {product_names: [...]} として返してください。`,
+          `以下の情報に基づいて10個のプロダクト名を生成してください。JSON形式で {product_names: [...]} として返してください。`,
           "productname"
         );
 
@@ -626,11 +633,11 @@ export async function POST(request: NextRequest) {
 
         result = await callDifyAPI(
           {
-            persona_data: JSON.stringify(persona),
-            business_idea_data: JSON.stringify(business_idea),
-            product_name_data: JSON.stringify(product_name),
+            persona: JSON.stringify(persona),
+            business_idea: JSON.stringify(business_idea),
+            product_name: JSON.stringify(product_name),
           },
-          `以下の情報に基づいてリーンキャンバスを生成してください。ペルソナ: ${JSON.stringify(persona)}、ビジネスアイデア: ${JSON.stringify(business_idea)}、プロダクト名: ${JSON.stringify(product_name)}。JSON形式で各要素を配列として返してください。例: {problem: [...], solution: [...], channels: [...], ...}`,
+          `以下の情報に基づいてリーンキャンバスを生成してください。JSON形式で各要素を配列として返してください。例: {problem: [...], solution: [...], channels: [...], ...}`,
           "canvas"
         );
 
