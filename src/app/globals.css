@@ -140,6 +140,21 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  /* Ensure touch targets are at least 44px */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Improve text readability on mobile */
+  .mobile-text {
+    font-size: 16px; /* Prevent zoom on iOS */
+    line-height: 1.5;
+  }
+}
+
 /* Print styles for lean canvas */
 @media print {
   body {

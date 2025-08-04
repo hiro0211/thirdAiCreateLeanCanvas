@@ -31,7 +31,7 @@ export default function HomePage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 dark:from-slate-900 dark:via-blue-900/30 dark:to-purple-900/30">
         <Header />
 
-        <main className="container mx-auto px-4 py-8 max-w-full overflow-hidden">
+        <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-full overflow-hidden">
           {/* Progress Stepper */}
           <div className="no-print">
             <WorkflowStepper currentStep={currentStep} />
@@ -45,7 +45,7 @@ export default function HomePage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="mt-8"
+              className="mt-4 sm:mt-8"
             >
               <CurrentStepComponent />
             </motion.div>
@@ -95,17 +95,17 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer className="no-print border-t bg-background/80 backdrop-blur-sm">
-          <div className="container mx-auto px-4 py-6">
-            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div className="container mx-auto px-4 py-4 sm:py-6">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
               <div className="text-center md:text-left">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   © 2024 AI Lean Canvas Creator. Powered by{" "}
                   <span className="font-semibold bg-gradient-primary bg-clip-text text-transparent">
                     Dify AI
                   </span>
                 </p>
               </div>
-              <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+              <div className="flex items-center space-x-4 text-xs sm:text-sm text-muted-foreground">
                 <span>Made with ❤️ for entrepreneurs</span>
               </div>
             </div>
