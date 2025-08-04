@@ -53,14 +53,27 @@
   * {
     @apply border-border;
   }
+
+  html {
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, rgba(248, 250, 252, 0.8) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--background)) 0%,
+      rgba(248, 250, 252, 0.8) 100%
+    );
     min-height: 100vh;
+    overflow-x: hidden;
   }
-  
+
   .dark body {
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, rgba(15, 23, 42, 0.8) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--background)) 0%,
+      rgba(15, 23, 42, 0.8) 100%
+    );
   }
 }
 
@@ -84,7 +97,8 @@
 
 /* Custom animations */
 @keyframes gradient-x {
-  0%, 100% {
+  0%,
+  100% {
     background-size: 200% 200%;
     background-position: left center;
   }
@@ -95,7 +109,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -104,7 +119,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
   }
   50% {
@@ -129,11 +145,11 @@
   body {
     background: white !important;
   }
-  
+
   .no-print {
     display: none !important;
   }
-  
+
   .print-break {
     page-break-before: always;
   }
