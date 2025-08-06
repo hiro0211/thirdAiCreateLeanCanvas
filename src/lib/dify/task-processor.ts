@@ -242,7 +242,22 @@ export class CanvasTaskProcessor extends TaskProcessor<
   }
 
   async process(body: any): Promise<LeanCanvasData> {
-    const normalizedData = await super.process(body);
+    if (!this.validateRequest(body)) {
+      throw new Error(this.getValidationErrorMessage());
+    }
+
+    const difyRequest = this.buildDifyRequest(body);
+    const rawResult = await this.difyClient.callApi(difyRequest);
+
+    const normalizer = NormalizerFactory.create(this.getTaskName());
+    const normalizedData = normalizer.normalize(rawResult);
+
+    if (!normalizer.validate(normalizedData)) {
+      throw new Error(
+        `Difyから${this.getTaskName()}データが返されませんでした`
+      );
+    }
+
     return normalizedData as LeanCanvasData;
   }
 }
