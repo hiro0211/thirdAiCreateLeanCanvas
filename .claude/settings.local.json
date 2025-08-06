@@ -5,7 +5,12 @@
       "Bash(powershell:*)",
       "Bash(npm run build:*)",
       "Bash(echo:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(copy:*)",
+      "Bash(cp:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npx tsc:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }
