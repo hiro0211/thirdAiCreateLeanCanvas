@@ -14,6 +14,7 @@ import {
   TutorialState,
   TutorialStep,
 } from "@/lib/types";
+import { ERROR_MESSAGES, WORKFLOW_STEPS, TUTORIAL_MESSAGES } from "@/lib/constants/messages";
 
 interface WorkflowState {
   // Current state
@@ -88,7 +89,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   generatePersonas: async () => {
     const { keyword } = get();
     if (!keyword.trim()) {
-      set({ error: "キーワードを入力してください" });
+      set({ error: ERROR_MESSAGES.KEYWORD_REQUIRED });
       return;
     }
 

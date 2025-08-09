@@ -1,4 +1,6 @@
 import { Logger } from '../utils/logger';
+import { ENV_CONFIG } from '../config/env-config';
+import { API_CONFIG } from '../constants/app-constants';
 
 export interface DifyConfig {
   apiKey: string;
@@ -32,7 +34,7 @@ export class DifyApiClient {
     
     // Real API call simulation with delay
     await new Promise((resolve) =>
-      setTimeout(resolve, 1000 + Math.random() * 2000)
+      setTimeout(resolve, ENV_CONFIG.DEMO_MODE_MIN_DELAY + Math.random() * (ENV_CONFIG.DEMO_MODE_MAX_DELAY - ENV_CONFIG.DEMO_MODE_MIN_DELAY))
     );
     
     const { MockDataGenerator } = await import('./mock-generator');
@@ -45,7 +47,7 @@ export class DifyApiClient {
     }
 
     // Dify chat application API endpoint
-    const apiEndpoint = `${this.config.apiUrl}/chat-messages`;
+    const apiEndpoint = `${this.config.apiUrl}${API_CONFIG.DIFY_ENDPOINT}`;
 
     const requestBody = {
       inputs: {
@@ -54,7 +56,7 @@ export class DifyApiClient {
       },
       query: request.query || `Please perform task: ${request.task}`,
       response_mode: 'blocking',
-      user: 'ai-lean-canvas-user',
+      user: API_CONFIG.DEFAULT_USER_ID,
       conversation_id: '',
     };
 
@@ -80,7 +82,7 @@ export class DifyApiClient {
           Authorization: `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(60000), // 60 seconds timeout
+        signal: AbortSignal.timeout(ENV_CONFIG.API_TIMEOUT), // Configurable timeout
       });
 
       const responseText = await response.text();

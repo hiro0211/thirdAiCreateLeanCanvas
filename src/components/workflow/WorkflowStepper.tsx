@@ -5,18 +5,20 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { WorkflowStep } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { ANIMATION_CONFIG, LAYOUT_CONFIG, SHADOW_CONFIG } from "@/lib/constants/app-constants";
+import { WORKFLOW_STEPS } from "@/lib/constants/messages";
 
 interface WorkflowStepperProps {
   currentStep: WorkflowStep;
 }
 
 const steps = [
-  { key: "keyword", label: "キーワード入力" },
-  { key: "persona-selection", label: "ペルソナ選択" },
-  { key: "business-idea-selection", label: "ビジネスアイデア選択" },
-  { key: "details-input", label: "詳細入力" },
-  { key: "product-name-selection", label: "プロダクト名選択" },
-  { key: "canvas-display", label: "リーンキャンバス" },
+  { key: "keyword", label: WORKFLOW_STEPS.STEP_LABELS.KEYWORD },
+  { key: "persona-selection", label: WORKFLOW_STEPS.STEP_LABELS.PERSONA_SELECTION },
+  { key: "business-idea-selection", label: WORKFLOW_STEPS.STEP_LABELS.BUSINESS_IDEA_SELECTION },
+  { key: "details-input", label: WORKFLOW_STEPS.STEP_LABELS.DETAILS_INPUT },
+  { key: "product-name-selection", label: WORKFLOW_STEPS.STEP_LABELS.PRODUCT_NAME_SELECTION },
+  { key: "canvas-display", label: WORKFLOW_STEPS.STEP_LABELS.CANVAS_DISPLAY },
 ];
 
 export function WorkflowStepper({ currentStep }: WorkflowStepperProps) {

@@ -3,14 +3,15 @@ import { DifyApiClient, DifyConfig } from "@/lib/dify/client";
 import { TaskProcessorFactory } from "@/lib/dify/task-processor";
 import { Logger } from "@/lib/utils/logger";
 import { ApiResponse } from "@/lib/types";
+import { ENV_CONFIG } from "@/lib/config/env-config";
+import { ERROR_MESSAGES } from "@/lib/constants/messages";
+import { API_CONFIG } from "@/lib/constants/app-constants";
 
 function createDifyConfig(): DifyConfig {
-  const apiKey = process.env.DIFY_API_KEY;
-  const apiUrl = process.env.NEXT_PUBLIC_DIFY_API_URL;
   return {
-    apiKey: apiKey || "",
-    apiUrl: apiUrl || "",
-    isDemoMode: !apiKey || apiKey === "" || apiKey === "demo",
+    apiKey: ENV_CONFIG.DIFY_API_KEY,
+    apiUrl: ENV_CONFIG.DIFY_API_URL,
+    isDemoMode: ENV_CONFIG.IS_DEMO_MODE,
   };
 }
 
@@ -39,8 +40,8 @@ export async function POST(request: NextRequest) {
     } as ApiResponse<typeof result>);
     
   } catch (error) {
-    let errorMessage = "サーバーエラーが発生しました";
-    let statusCode = 500;
+    let errorMessage = ERROR_MESSAGES.SERVER_ERROR;
+    let statusCode = API_CONFIG.STATUS_CODES.INTERNAL_SERVER_ERROR;
 
     if (error instanceof Error) {
       if (error.message.includes("タイムアウト")) {

@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { Award, Download, RotateCcw, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWorkflowStore } from "@/stores/workflow-store";
+import { ANIMATION_CONFIG, LAYOUT_CONFIG, TYPOGRAPHY_CONFIG, SHADOW_CONFIG } from "@/lib/constants/app-constants";
+import { getBlockTheme, GRADIENTS, BUTTON_THEMES } from "@/lib/constants/theme-config";
+import { SUCCESS_MESSAGES, ERROR_MESSAGES, UI_LABELS } from "@/lib/constants/messages";
 
 export function StepLeanCanvasDisplay() {
   const { leanCanvasData, selectedProductName, resetWorkflow } =
@@ -13,74 +16,15 @@ export function StepLeanCanvasDisplay() {
     return (
       <div className="text-center">
         <p className="text-lg text-gray-600">
-          リーンキャンバスの生成に失敗しました。
+          {ERROR_MESSAGES.LEAN_CANVAS_GENERATION_FAILED}
         </p>
         <Button onClick={resetWorkflow} className="mt-4">
-          最初からやり直す
+          {UI_LABELS.START_OVER}
         </Button>
       </div>
     );
   }
 
-  const getBlockColors = (number: number) => {
-    const colorMap = {
-      1: {
-        bg: "from-red-50 to-red-100",
-        border: "border-red-200",
-        accent: "bg-red-500",
-        icon: "🎯",
-      },
-      2: {
-        bg: "from-emerald-50 to-emerald-100",
-        border: "border-emerald-200",
-        accent: "bg-emerald-500",
-        icon: "💡",
-      },
-      3: {
-        bg: "from-purple-50 to-purple-100",
-        border: "border-purple-200",
-        accent: "bg-purple-500",
-        icon: "💎",
-      },
-      4: {
-        bg: "from-orange-50 to-orange-100",
-        border: "border-orange-200",
-        accent: "bg-orange-500",
-        icon: "🚀",
-      },
-      5: {
-        bg: "from-blue-50 to-blue-100",
-        border: "border-blue-200",
-        accent: "bg-blue-500",
-        icon: "👥",
-      },
-      6: {
-        bg: "from-indigo-50 to-indigo-100",
-        border: "border-indigo-200",
-        accent: "bg-indigo-500",
-        icon: "📊",
-      },
-      7: {
-        bg: "from-teal-50 to-teal-100",
-        border: "border-teal-200",
-        accent: "bg-teal-500",
-        icon: "📢",
-      },
-      8: {
-        bg: "from-yellow-50 to-yellow-100",
-        border: "border-yellow-200",
-        accent: "bg-yellow-500",
-        icon: "💰",
-      },
-      9: {
-        bg: "from-pink-50 to-pink-100",
-        border: "border-pink-200",
-        accent: "bg-pink-500",
-        icon: "💵",
-      },
-    };
-    return colorMap[number as keyof typeof colorMap] || colorMap[1];
-  };
 
   const CanvasBlock = ({
     number,
@@ -95,7 +39,7 @@ export function StepLeanCanvasDisplay() {
     className?: string;
     isHalfHeight?: boolean;
   }) => {
-    const colors = getBlockColors(number);
+    const colors = getBlockTheme(number);
 
     return (
       <motion.div
