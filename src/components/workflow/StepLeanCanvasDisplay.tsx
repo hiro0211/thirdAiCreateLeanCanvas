@@ -4,9 +4,32 @@ import { motion } from "framer-motion";
 import { Award, Download, RotateCcw, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWorkflowStore } from "@/stores/workflow-store";
-import { ANIMATION_CONFIG, LAYOUT_CONFIG, TYPOGRAPHY_CONFIG, SHADOW_CONFIG } from "@/lib/constants/app-constants";
-import { getBlockTheme, GRADIENTS, BUTTON_THEMES } from "@/lib/constants/theme-config";
-import { SUCCESS_MESSAGES, ERROR_MESSAGES, UI_LABELS } from "@/lib/constants/messages";
+import { ANIMATION_CONFIG, LAYOUT_CONFIG } from "@/lib/constants/app-constants";
+import { getBlockTheme } from "@/lib/constants/theme-config";
+import {
+  ERROR_MESSAGES,
+  UI_LABELS,
+  LEAN_CANVAS,
+} from "@/lib/constants/messages";
+import {
+  LEAN_CANVAS_BLOCKS,
+  CANVAS_DISPLAY_ORDER,
+  CANVAS_LAYOUT,
+  getBlockByNumber,
+  getBlockData,
+  getBlocksForColumn,
+  type LeanCanvasData,
+} from "@/lib/constants/canvas-structure";
+import {
+  CONTAINER_CLASSES,
+  HEADER_CLASSES,
+  CANVAS_BLOCK_CLASSES,
+  GRID_CLASSES,
+  BUTTON_CLASSES,
+  SUCCESS_CLASSES,
+  getDynamicClasses,
+} from "@/lib/constants/css-classes";
+import { getBlockTitle } from "@/lib/utils/message-helpers";
 
 export function StepLeanCanvasDisplay() {
   const { leanCanvasData, selectedProductName, resetWorkflow } =
@@ -25,7 +48,7 @@ export function StepLeanCanvasDisplay() {
     );
   }
 
-
+  // キャンバスブロックコンポーネント
   const CanvasBlock = ({
     number,
     title,
@@ -43,31 +66,37 @@ export function StepLeanCanvasDisplay() {
 
     return (
       <motion.div
-        className={`bg-gradient-to-br ${colors.bg} border-2 ${colors.border} p-3 flex flex-col rounded-lg shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] ${isHalfHeight ? "min-h-[180px]" : "h-full"} ${className}`}
-        whileHover={{ y: -2 }}
-        transition={{ duration: 0.2 }}
+        className={getDynamicClasses.canvasBlock(
+          isHalfHeight,
+          `bg-gradient-to-br ${colors.bg} border-2 ${colors.border} hover:scale-[${ANIMATION_CONFIG.HOVER_SCALE}] ${className}`
+        )}
+        whileHover={{ y: ANIMATION_CONFIG.HOVER_TRANSLATE_Y }}
+        transition={{ duration: ANIMATION_CONFIG.FAST_DURATION }}
       >
-        <div className="flex items-center mb-3 flex-shrink-0">
+        <div className={CANVAS_BLOCK_CLASSES.HEADER}>
           <div
-            className={`w-8 h-8 ${colors.accent} text-white text-sm font-bold rounded-full flex items-center justify-center mr-3 shadow-md`}
+            className={`${CANVAS_BLOCK_CLASSES.NUMBER_BADGE} ${colors.accent}`}
           >
             {number}
           </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-sm text-gray-800 mb-1">{title}</h3>
-            <span className="text-lg">{colors.icon}</span>
+          <div className={CANVAS_BLOCK_CLASSES.TITLE_CONTAINER}>
+            <h3 className={CANVAS_BLOCK_CLASSES.TITLE}>{title}</h3>
+            <span className={CANVAS_BLOCK_CLASSES.ICON}>{colors.icon}</span>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto space-y-2">
+        <div className={CANVAS_BLOCK_CLASSES.CONTENT_CONTAINER}>
           {content.map((item, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white/60 backdrop-blur-sm p-2 rounded-md border border-white/40 hover:bg-white/80 transition-all duration-200"
+              initial={{
+                opacity: ANIMATION_CONFIG.INITIAL_OPACITY,
+                x: ANIMATION_CONFIG.ITEM_INITIAL_X,
+              }}
+              animate={{ opacity: ANIMATION_CONFIG.FINAL_OPACITY, x: 0 }}
+              transition={{ delay: index * ANIMATION_CONFIG.STAGGER_DELAY }}
+              className={CANVAS_BLOCK_CLASSES.CONTENT_ITEM}
             >
-              <p className="text-xs text-gray-700 leading-relaxed">• {item}</p>
+              <p className={CANVAS_BLOCK_CLASSES.CONTENT_TEXT}>• {item}</p>
             </motion.div>
           ))}
         </div>
@@ -75,199 +104,224 @@ export function StepLeanCanvasDisplay() {
     );
   };
 
+  // ブロック描画用ヘルパー関数
+  const renderCanvasBlock = (
+    blockNumber: number,
+    isHalfHeight = false,
+    className = ""
+  ) => {
+    const blockConfig = getBlockByNumber(blockNumber);
+    if (!blockConfig) return null;
+
+    const title = getBlockTitle(blockConfig.titleKey);
+    const content = getBlockData(
+      leanCanvasData as LeanCanvasData,
+      blockConfig.dataKey
+    );
+
+    return (
+      <CanvasBlock
+        number={blockNumber}
+        title={title}
+        content={content}
+        className={className}
+        isHalfHeight={isHalfHeight}
+      />
+    );
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-6xl mx-auto px-2 sm:px-4"
+      initial={{
+        opacity: ANIMATION_CONFIG.INITIAL_OPACITY,
+        y: ANIMATION_CONFIG.INITIAL_Y,
+      }}
+      animate={{ opacity: ANIMATION_CONFIG.FINAL_OPACITY, y: 0 }}
+      transition={{ duration: ANIMATION_CONFIG.SLOW_DURATION }}
+      className={CONTAINER_CLASSES.MAIN_CONTAINER}
     >
       {/* Header */}
-      <div className="text-center mb-8 sm:mb-10">
+      <div className={CONTAINER_CLASSES.HEADER_CONTAINER}>
         <motion.div
-          className="mx-auto mb-6 sm:mb-8 w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-full flex items-center justify-center shadow-2xl border-4 border-white"
+          className={HEADER_CLASSES.ICON_BACKGROUND}
           animate={{
-            scale: [1, 1.05, 1],
-            rotate: [0, 5, -5, 0],
+            scale: ANIMATION_CONFIG.HEADER_SCALE_KEYFRAMES,
+            rotate: ANIMATION_CONFIG.HEADER_ROTATE_KEYFRAMES,
           }}
           transition={{
-            duration: 4,
+            duration: ANIMATION_CONFIG.HEADER_ROTATE_DURATION,
             repeat: Infinity,
-            ease: "easeInOut",
+            ease: ANIMATION_CONFIG.BOUNCE_EASE,
           }}
         >
-          <Award className="w-10 h-10 sm:w-12 sm:h-12 text-white drop-shadow-lg" />
+          <Award className={HEADER_CLASSES.ICON} />
         </motion.div>
 
         <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-3xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4 drop-shadow-sm"
+          initial={{
+            opacity: ANIMATION_CONFIG.INITIAL_OPACITY,
+            y: ANIMATION_CONFIG.HEADER_INITIAL_Y,
+          }}
+          animate={{ opacity: ANIMATION_CONFIG.FINAL_OPACITY, y: 0 }}
+          transition={{ delay: ANIMATION_CONFIG.HEADER_DELAY }}
+          className={HEADER_CLASSES.TITLE}
         >
-          🎯 リーンキャンバス
+          {LEAN_CANVAS.TITLE_WITH_EMOJI}
         </motion.h1>
 
         {selectedProductName && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-lg sm:text-xl font-bold text-gray-700 mb-6 p-4 bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl mx-2 sm:mx-0 shadow-lg backdrop-blur-sm"
+            initial={{
+              opacity: ANIMATION_CONFIG.INITIAL_OPACITY,
+              scale: ANIMATION_CONFIG.PRODUCT_NAME_SCALE,
+            }}
+            animate={{ opacity: ANIMATION_CONFIG.FINAL_OPACITY, scale: 1 }}
+            transition={{ delay: ANIMATION_CONFIG.PRODUCT_NAME_DELAY }}
+            className={HEADER_CLASSES.PRODUCT_NAME_CONTAINER}
           >
-            <span className="text-purple-600">プロダクト名:</span>{" "}
-            <span className="text-indigo-700">{selectedProductName.name}</span>
+            <span className={HEADER_CLASSES.PRODUCT_NAME_LABEL}>
+              {LEAN_CANVAS.PRODUCT_NAME_LABEL}
+            </span>{" "}
+            <span className={HEADER_CLASSES.PRODUCT_NAME_VALUE}>
+              {selectedProductName.name}
+            </span>
           </motion.div>
         )}
       </div>
 
       {/* Modern Lean Canvas Layout */}
-      <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-2xl shadow-2xl mb-6 sm:mb-8 min-h-[720px] p-4 backdrop-blur-sm">
+      <div
+        className={getDynamicClasses.canvasContainer(
+          LAYOUT_CONFIG.CANVAS_MIN_HEIGHT,
+          LAYOUT_CONFIG.CARD_PADDING
+        )}
+      >
         {/* Top Section */}
-        <div className="grid grid-cols-5 min-h-[500px] gap-3 mb-3">
-          {/* Column 1: Problems */}
-          <CanvasBlock
-            number={1}
-            title="課題"
-            content={leanCanvasData.problem}
-          />
+        <div
+          className={getDynamicClasses.topSection(
+            LAYOUT_CONFIG.TOP_SECTION_MIN_HEIGHT
+          )}
+        >
+          {CANVAS_DISPLAY_ORDER.TOP_SECTION.map((column) => {
+            const blocks = getBlocksForColumn("top", column.col);
 
-          {/* Column 2: Solution and Key Metrics */}
-          <div className="flex flex-col gap-3">
-            <CanvasBlock
-              number={2}
-              title="ソリューション"
-              content={leanCanvasData.solution}
-              className="flex-1"
-              isHalfHeight={true}
-            />
-            <CanvasBlock
-              number={6}
-              title="主要指標"
-              content={leanCanvasData.keyMetrics}
-              className="flex-1"
-              isHalfHeight={true}
-            />
-          </div>
-
-          {/* Column 3: Unique Value Proposition */}
-          <CanvasBlock
-            number={3}
-            title="独自の価値提案"
-            content={leanCanvasData.uniqueValueProposition}
-          />
-
-          {/* Column 4: Unfair Advantage and Channels */}
-          <div className="flex flex-col gap-3">
-            <CanvasBlock
-              number={4}
-              title="圧倒的優位性"
-              content={leanCanvasData.unfairAdvantage}
-              className="flex-1"
-              isHalfHeight={true}
-            />
-            <CanvasBlock
-              number={7}
-              title="チャネル"
-              content={leanCanvasData.channels}
-              className="flex-1"
-              isHalfHeight={true}
-            />
-          </div>
-
-          {/* Column 5: Customer Segments */}
-          <CanvasBlock
-            number={5}
-            title="顧客セグメント"
-            content={leanCanvasData.customerSegments}
-          />
+            if (blocks.length === 1) {
+              // 単一ブロック列
+              return renderCanvasBlock(blocks[0]);
+            } else if (blocks.length === 2) {
+              // 分割ブロック列
+              return (
+                <div
+                  key={`col-${column.col}`}
+                  className={GRID_CLASSES.SPLIT_COLUMN}
+                >
+                  {renderCanvasBlock(blocks[0], true, "flex-1")}
+                  {renderCanvasBlock(blocks[1], true, "flex-1")}
+                </div>
+              );
+            }
+            return null;
+          })}
         </div>
 
         {/* Bottom Section */}
-        <div className="grid grid-cols-2 min-h-[200px] gap-3">
-          <CanvasBlock
-            number={8}
-            title="コスト構造"
-            content={leanCanvasData.costStructure}
-          />
-          <CanvasBlock
-            number={9}
-            title="収益の流れ"
-            content={leanCanvasData.revenueStreams}
-          />
+        <div
+          className={getDynamicClasses.bottomSection(
+            LAYOUT_CONFIG.BOTTOM_SECTION_MIN_HEIGHT
+          )}
+        >
+          {CANVAS_DISPLAY_ORDER.BOTTOM_SECTION.map((column) => {
+            const blocks = getBlocksForColumn("bottom", column.col);
+            return blocks.map((blockNumber) => renderCanvasBlock(blockNumber));
+          })}
         </div>
       </div>
 
       {/* Action Buttons */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
-        className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-6 mb-8 sm:mb-10 px-2"
+        initial={{
+          opacity: ANIMATION_CONFIG.INITIAL_OPACITY,
+          y: ANIMATION_CONFIG.INITIAL_Y,
+        }}
+        animate={{ opacity: ANIMATION_CONFIG.FINAL_OPACITY, y: 0 }}
+        transition={{ delay: ANIMATION_CONFIG.BUTTON_DELAY }}
+        className={CONTAINER_CLASSES.BUTTON_CONTAINER}
       >
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+        <motion.div
+          whileHover={{ scale: ANIMATION_CONFIG.BUTTON_HOVER_SCALE }}
+          whileTap={{ scale: ANIMATION_CONFIG.BUTTON_ACTIVE_SCALE }}
+        >
           <Button
             size="lg"
             variant="outline"
-            className="flex items-center justify-center space-x-3 w-full sm:w-auto min-h-[50px] bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-100 hover:to-cyan-100 text-blue-700 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            className={BUTTON_CLASSES.PDF_SAVE}
             onClick={() => window.print()}
           >
-            <Download className="w-5 h-5" />
-            <span>📄 PDFで保存</span>
+            <Download className={BUTTON_CLASSES.ICON} />
+            <span>{LEAN_CANVAS.ACTION_BUTTONS.PDF_SAVE}</span>
           </Button>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button
-            size="lg"
-            variant="outline"
-            className="flex items-center justify-center space-x-3 w-full sm:w-auto min-h-[50px] bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200 hover:border-emerald-300 hover:bg-gradient-to-r hover:from-emerald-100 hover:to-teal-100 text-emerald-700 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            <Share2 className="w-5 h-5" />
-            <span>🚀 共有</span>
+        <motion.div
+          whileHover={{ scale: ANIMATION_CONFIG.BUTTON_HOVER_SCALE }}
+          whileTap={{ scale: ANIMATION_CONFIG.BUTTON_ACTIVE_SCALE }}
+        >
+          <Button size="lg" variant="outline" className={BUTTON_CLASSES.SHARE}>
+            <Share2 className={BUTTON_CLASSES.ICON} />
+            <span>{LEAN_CANVAS.ACTION_BUTTONS.SHARE}</span>
           </Button>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+        <motion.div
+          whileHover={{ scale: ANIMATION_CONFIG.BUTTON_HOVER_SCALE }}
+          whileTap={{ scale: ANIMATION_CONFIG.BUTTON_ACTIVE_SCALE }}
+        >
           <Button
             size="lg"
-            className="flex items-center justify-center space-x-3 w-full sm:w-auto min-h-[50px] bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-0"
+            className={BUTTON_CLASSES.CREATE_NEW}
             onClick={resetWorkflow}
           >
-            <RotateCcw className="w-5 h-5" />
-            <span>✨ 新しいキャンバスを作成</span>
+            <RotateCcw className={BUTTON_CLASSES.ICON} />
+            <span>{LEAN_CANVAS.ACTION_BUTTONS.CREATE_NEW}</span>
           </Button>
         </motion.div>
       </motion.div>
 
       {/* Success Message */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1.2 }}
-        className="text-center p-6 sm:p-8 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 rounded-2xl border-2 border-emerald-200 mx-2 sm:mx-0 shadow-xl backdrop-blur-sm"
+        initial={{
+          opacity: ANIMATION_CONFIG.INITIAL_OPACITY,
+          scale: ANIMATION_CONFIG.PRODUCT_NAME_SCALE,
+        }}
+        animate={{ opacity: ANIMATION_CONFIG.FINAL_OPACITY, scale: 1 }}
+        transition={{ delay: ANIMATION_CONFIG.SUCCESS_DELAY }}
+        className={getDynamicClasses.successContainer(6, 8)}
       >
         <motion.div
-          animate={{ rotate: [0, 10, -10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="text-4xl sm:text-5xl mb-4"
+          animate={{ rotate: ANIMATION_CONFIG.SUCCESS_ROTATE_KEYFRAMES }}
+          transition={{
+            duration: ANIMATION_CONFIG.SUCCESS_ROTATE_DURATION,
+            repeat: Infinity,
+            ease: ANIMATION_CONFIG.BOUNCE_EASE,
+          }}
+          className={SUCCESS_CLASSES.EMOJI_CONTAINER}
         >
-          🎊
+          {LEAN_CANVAS.SUCCESS.EMOJI}
         </motion.div>
-        <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent mb-4">
-          おめでとうございます！
-        </h3>
-        <p className="text-sm sm:text-base text-gray-700 leading-relaxed max-w-2xl mx-auto">
-          AIとの協力により、あなたのビジネスアイデアが具体的な
-          <span className="font-semibold text-purple-600">
+        <h3 className={SUCCESS_CLASSES.TITLE}>{LEAN_CANVAS.SUCCESS.TITLE}</h3>
+        <p className={SUCCESS_CLASSES.MESSAGE}>
+          {LEAN_CANVAS.SUCCESS.MESSAGE_PART1}
+          <span className={SUCCESS_CLASSES.HIGHLIGHT_PURPLE}>
             {" "}
-            リーンキャンバス
+            {LEAN_CANVAS.SUCCESS.MESSAGE_CANVAS}
           </span>
-          として形になりました。
+          {LEAN_CANVAS.SUCCESS.MESSAGE_PART2}
           <br />
-          このキャンバスを基に、さらなる
-          <span className="font-semibold text-blue-600">ビジネス展開</span>
-          を検討してみてください。
+          {LEAN_CANVAS.SUCCESS.MESSAGE_PART3}
+          <span className={SUCCESS_CLASSES.HIGHLIGHT_BLUE}>
+            {LEAN_CANVAS.SUCCESS.MESSAGE_BUSINESS}
+          </span>
+          {LEAN_CANVAS.SUCCESS.MESSAGE_PART4}
         </p>
       </motion.div>
     </motion.div>

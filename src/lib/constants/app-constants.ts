@@ -5,15 +5,21 @@ export const ANIMATION_CONFIG = {
   // 遅延設定
   STAGGER_DELAY: 0.1,
   FAST_DELAY: 0.2,
+  HEADER_DELAY: 0.2,
+  PRODUCT_NAME_DELAY: 0.4,
   MEDIUM_DELAY: 0.5,
   SLOW_DELAY: 1.0,
+  BUTTON_DELAY: 1.0,
   SUCCESS_DELAY: 1.2,
 
   // 継続時間
   FAST_DURATION: 0.2,
+  ITEM_DURATION: 0.2,
   MEDIUM_DURATION: 0.3,
   SLOW_DURATION: 0.5,
   ROTATE_DURATION: 1.0,
+  SUCCESS_ROTATE_DURATION: 2.0,
+  HEADER_ROTATE_DURATION: 4.0,
   INFINITE_ROTATE_DURATION: 20,
 
   // スケール設定
@@ -22,10 +28,23 @@ export const ANIMATION_CONFIG = {
   STEP_ACTIVE_SCALE: 1.1,
   BUTTON_HOVER_SCALE: 1.05,
   BUTTON_ACTIVE_SCALE: 0.95,
+  HEADER_SCALE_MAX: 1.05,
+  PRODUCT_NAME_SCALE: 0.8,
 
   // 移動距離
   HOVER_TRANSLATE_Y: -2,
   INITIAL_Y: 20,
+  HEADER_INITIAL_Y: -20,
+  ITEM_INITIAL_X: -10,
+
+  // 回転角度配列
+  HEADER_SCALE_KEYFRAMES: [1, 1.05, 1],
+  HEADER_ROTATE_KEYFRAMES: [0, 5, -5, 0],
+  SUCCESS_ROTATE_KEYFRAMES: [0, 10, -10, 0],
+
+  // 透明度設定
+  INITIAL_OPACITY: 0,
+  FINAL_OPACITY: 1,
 
   // イージング
   SPRING_EASE: "easeOut",
@@ -66,38 +85,38 @@ export const LAYOUT_CONFIG = {
 // フォント設定
 export const TYPOGRAPHY_CONFIG = {
   // フォントサイズ
-  TITLE_SIZE: 'text-3xl sm:text-5xl',
-  SUBTITLE_SIZE: 'text-lg sm:text-2xl',
-  CARD_TITLE_SIZE: 'text-base sm:text-lg',
-  BODY_SIZE: 'text-sm',
-  SMALL_SIZE: 'text-xs',
+  TITLE_SIZE: "text-3xl sm:text-5xl",
+  SUBTITLE_SIZE: "text-lg sm:text-2xl",
+  CARD_TITLE_SIZE: "text-base sm:text-lg",
+  BODY_SIZE: "text-sm",
+  SMALL_SIZE: "text-xs",
 
   // フォント重量
-  BOLD: 'font-bold',
-  SEMIBOLD: 'font-semibold',
-  MEDIUM: 'font-medium',
+  BOLD: "font-bold",
+  SEMIBOLD: "font-semibold",
+  MEDIUM: "font-medium",
 } as const;
 
 // ブレークポイント設定
 export const BREAKPOINTS = {
-  SM: '640px',
-  MD: '768px',
-  LG: '1024px',
-  XL: '1280px',
-  '2XL': '1536px',
+  SM: "640px",
+  MD: "768px",
+  LG: "1024px",
+  XL: "1280px",
+  "2XL": "1536px",
 } as const;
 
 // シャドウ設定
 export const SHADOW_CONFIG = {
-  SMALL: 'shadow-sm',
-  MEDIUM: 'shadow-md',
-  LARGE: 'shadow-lg',
-  EXTRA_LARGE: 'shadow-xl',
-  '2XL': 'shadow-2xl',
-  
+  SMALL: "shadow-sm",
+  MEDIUM: "shadow-md",
+  LARGE: "shadow-lg",
+  EXTRA_LARGE: "shadow-xl",
+  "2XL": "shadow-2xl",
+
   // カスタムシャドウ（Box Shadow値）
-  STEP_ACTIVE: '0 8px 25px rgba(102, 126, 234, 0.6)',
-  STEP_DEFAULT: '0 4px 15px rgba(102, 126, 234, 0.4)',
+  STEP_ACTIVE: "0 8px 25px rgba(102, 126, 234, 0.6)",
+  STEP_DEFAULT: "0 4px 15px rgba(102, 126, 234, 0.4)",
 } as const;
 
 // API設定
@@ -108,11 +127,11 @@ export const API_CONFIG = {
   DEMO_MODE_MAX_DELAY: 2000,
 
   // エンドポイント
-  DIFY_ENDPOINT: '/chat-messages',
-  
+  DIFY_ENDPOINT: "/chat-messages",
+
   // ユーザー識別子
-  DEFAULT_USER_ID: 'ai-lean-canvas-user',
-  
+  DEFAULT_USER_ID: "ai-lean-canvas-user",
+
   // HTTPステータスコード
   STATUS_CODES: {
     OK: 200,
@@ -121,23 +140,23 @@ export const API_CONFIG = {
     NOT_FOUND: 404,
     TIMEOUT: 408,
     INTERNAL_SERVER_ERROR: 500,
-  }
+  },
 } as const;
 
 // 境界線設定
 export const BORDER_CONFIG = {
   THICKNESS: {
-    THIN: 'border',
-    MEDIUM: 'border-2',
-    THICK: 'border-4',
+    THIN: "border",
+    MEDIUM: "border-2",
+    THICK: "border-4",
   },
   RADIUS: {
-    SMALL: 'rounded-md',
-    MEDIUM: 'rounded-lg',
-    LARGE: 'rounded-xl',
-    EXTRA_LARGE: 'rounded-2xl',
-    FULL: 'rounded-full',
-  }
+    SMALL: "rounded-md",
+    MEDIUM: "rounded-lg",
+    LARGE: "rounded-xl",
+    EXTRA_LARGE: "rounded-2xl",
+    FULL: "rounded-full",
+  },
 } as const;
 
 // 数値制限
