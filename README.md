@@ -22,21 +22,112 @@ DifyのAIワークフローと連携するリーンキャンバス作成アプ�
 
 ```
 src/
-├── app/
-│   ├── api/dify/           # Dify APIとの通信
-│   ├── layout.tsx          # アプリケーションレイアウト
-│   ├── page.tsx           # メインページ
-│   └── globals.css        # グローバルスタイル
-├── components/
-│   ├── ui/                # 基本UIコンポーネント
-│   ├── layout/            # レイアウトコンポーネント
-│   └── workflow/          # ワークフローコンポーネント
-├── lib/
-│   ├── types.ts          # TypeScript型定義
-│   └── utils.ts          # ユーティリティ関数
-└── stores/
-    └── workflow-store.ts  # Zustand状態管理
+├── app/                                    # Next.js App Router
+│   ├── api/dify/                          # Dify APIとの通信エンドポイント
+│   │   ├── route.ts                       # Dify API統合BFFエンドポイント
+│   │   └── route-original.ts              # 元のルート実装（参考用）
+│   ├── layout.tsx                         # ルートレイアウト、プロバイダー設定
+│   ├── page.tsx                           # メインページ、ワークフロー制御
+│   └── globals.css                        # Tailwind CSSとカスタムスタイル
+├── components/                            # Reactコンポーネント
+│   ├── ui/                               # shadcn/ui基本コンポーネント
+│   │   ├── button.tsx                     # カスタマイズされたボタンコンポーネント
+│   │   ├── card.tsx                       # カードレイアウトコンポーネント
+│   │   ├── input.tsx                      # フォーム入力コンポーネント
+│   │   ├── label.tsx                      # フォームラベルコンポーネント
+│   │   └── progress.tsx                   # プログレスバーコンポーネント
+│   ├── layout/                           # レイアウト関連コンポーネント
+│   │   ├── Header.tsx                     # アプリヘッダー、ナビゲーション
+│   │   └── ThemeToggle.tsx                # ダークモード切り替えボタン
+│   ├── tutorial/                         # チュートリアル機能
+│   │   ├── TutorialGuide.tsx              # ステップガイド表示
+│   │   ├── TutorialModal.tsx              # チュートリアルモーダル
+│   │   └── TutorialProvider.tsx           # チュートリアル状態管理
+│   └── workflow/                         # ワークフローステップコンポーネント
+│       ├── WorkflowStepper.tsx            # ステップインジケーター
+│       ├── StepKeywordInput.tsx           # 1. キーワード入力フォーム
+│       ├── StepPersonaSelection.tsx       # 2. ペルソナ選択UI
+│       ├── StepBusinessIdeaSelection.tsx  # 3. ビジネスアイデア選択UI
+│       ├── StepDetailsInput.tsx           # 4. 製品詳細入力フォーム
+│       ├── StepProductNameSelection.tsx   # 5. プロダクト名選択UI
+│       └── StepLeanCanvasDisplay.tsx      # 6. リーンキャンバス表示
+├── lib/                                  # ライブラリとユーティリティ
+│   ├── config/                           # 設定管理
+│   │   └── env-config.ts                  # 環境変数設定
+│   ├── constants/                        # 定数定義
+│   │   ├── app-constants.ts               # アプリケーション定数
+│   │   ├── canvas-structure.ts            # リーンキャンバス構造定義
+│   │   ├── css-classes.ts                 # CSS クラス定数
+│   │   ├── index.ts                       # 定数エクスポート
+│   │   ├── messages.ts                    # UIメッセージ定数
+│   │   └── theme-config.ts                # テーマ設定定数
+│   ├── dify/                             # Dify API統合
+│   │   ├── client.ts                      # Dify APIクライアント
+│   │   ├── mock-generator.ts              # モックデータ生成器
+│   │   ├── normalizers.ts                 # データ正規化処理
+│   │   └── task-processor.ts              # タスク処理ロジック
+│   ├── utils/                            # ユーティリティ関数
+│   │   ├── logger.ts                      # ログ機能
+│   │   └── message-helpers.ts             # メッセージ処理ヘルパー
+│   ├── types.ts                          # TypeScript型定義
+│   └── utils.ts                          # shadcn/ui共通ユーティリティ
+└── stores/                               # 状態管理
+    └── workflow-store.ts                  # Zustandワークフロー状態管理
+
+設定ファイル:
+├── tailwind.config.js                    # Tailwind CSS設定
+├── tsconfig.json                         # TypeScript設定
+├── next.config.js                        # Next.js設定
+├── postcss.config.js                    # PostCSS設定
+├── package.json                          # プロジェクト依存関係
+├── vercel.json                           # Vercelデプロイ設定
+├── CLAUDE.md                             # Claude AI開発指示書
+├── DifyAPIReference.md                   # Dify API仕様書
+└── README.md                             # このファイル
 ```
+
+## 🏗️ アーキテクチャ詳細
+
+### コア機能とファイルの役割
+
+#### 🎯 **ワークフロー管理**
+- **`workflow-store.ts`**: Zustandによる中央状態管理
+  - 現在のステップ、ユーザー選択、API レスポンスを管理
+  - 非同期API呼び出しとエラーハンドリング
+  - ステップ間のデータ流れを制御
+
+#### 🔌 **Dify API統合**
+- **`route.ts`**: BFF (Backend for Frontend) パターン
+  - フロントエンドとDify APIの仲介
+  - タスクベースルーティング (persona, businessidea, productname, canvas)
+  - エラーハンドリングとレスポンス正規化
+- **`client.ts`**: Dify APIクライアント
+  - HTTP通信の抽象化とエラー処理
+  - 認証とリクエスト形式の統一
+- **`task-processor.ts`**: タスク処理エンジン
+  - 各タスクタイプに対応した処理ロジック
+  - データバリデーションと変換
+
+#### 🎨 **UI/UXコンポーネント**
+- **`page.tsx`**: メインページコントローラー
+  - ワークフロー状態に基づくコンポーネント制御
+  - ステップ間の遷移管理
+- **ワークフローステップコンポーネント**: 
+  - 各ステップ専用のUI (入力フォーム、選択インターフェース)
+  - Framer Motionアニメーション統合
+  - レスポンシブデザイン対応
+
+#### 📊 **データフロー**
+1. **フロントエンド** → `workflow-store.ts` → API呼び出し
+2. **API Route** (`route.ts`) → データ検証 → Dify API
+3. **Dify Response** → 正規化 (`normalizers.ts`) → フロントエンド
+4. **UI更新** → 次ステップへ遷移
+
+#### 🛠️ **開発支援機能**
+- **型安全性**: `types.ts`による厳密な型定義
+- **モックデータ**: `mock-generator.ts`による開発時データ生成
+- **ログ機能**: `logger.ts`によるデバッグ支援
+- **定数管理**: `constants/`ディレクトリによる設定の一元化
 
 ## 🚀 開始方法
 

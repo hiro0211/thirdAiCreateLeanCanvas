@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
+import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { ProductDetails } from "@/lib/types";
 
 export function StepDetailsInput() {
@@ -96,15 +97,11 @@ export function StepDetailsInput() {
           className="space-y-4 sm:space-y-6"
           data-tutorial="product-details"
         >
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
-            >
-              {error}
-            </motion.div>
-          )}
+          <RetryableErrorDisplay
+            error={error}
+            onRetry={generateProductNames}
+            retryLabel="プロダクト名を再生成"
+          />
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}

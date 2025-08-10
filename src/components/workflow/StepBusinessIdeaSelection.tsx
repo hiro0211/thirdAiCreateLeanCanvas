@@ -1,17 +1,26 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Lightbulb, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useWorkflowStore } from '@/stores/workflow-store';
-import { BusinessIdea } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { motion } from "framer-motion";
+import { Lightbulb, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useWorkflowStore } from "@/stores/workflow-store";
+import { RetryableErrorDisplay } from "@/components/ui/error-display";
+import { BusinessIdea } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function StepBusinessIdeaSelection() {
   const {
     businessIdeas,
     selectedBusinessIdea,
+    error,
+    generateBusinessIdeas,
     selectBusinessIdea,
     goToNextStep,
     goToPreviousStep,
@@ -56,6 +65,12 @@ export function StepBusinessIdeaSelection() {
         </p>
       </div>
 
+      <RetryableErrorDisplay
+        error={error}
+        onRetry={generateBusinessIdeas}
+        retryLabel="ビジネスアイデアを再生成"
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {businessIdeas.map((idea, index) => (
           <motion.div
@@ -68,10 +83,10 @@ export function StepBusinessIdeaSelection() {
           >
             <Card
               className={cn(
-                'cursor-pointer transition-all duration-300 hover:shadow-xl border-2 h-full',
+                "cursor-pointer transition-all duration-300 hover:shadow-xl border-2 h-full",
                 selectedBusinessIdea?.id === idea.id
-                  ? 'border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5'
-                  : 'border-gray-200 hover:border-primary/50'
+                  ? "border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5"
+                  : "border-gray-200 hover:border-primary/50"
               )}
               onClick={() => handleIdeaSelect(idea)}
             >
@@ -92,12 +107,14 @@ export function StepBusinessIdeaSelection() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-gray-700 mb-3">ビジネスコンセプト</h4>
+                  <h4 className="font-medium text-gray-700 mb-3">
+                    ビジネスコンセプト
+                  </h4>
                   <p className="text-sm text-gray-600 leading-relaxed bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg">
                     {idea.idea_text}
                   </p>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2 flex items-center space-x-2">
                     <span>💡</span>
@@ -124,10 +141,7 @@ export function StepBusinessIdeaSelection() {
           <span>戻る</span>
         </Button>
 
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={handleNext}
             disabled={!selectedBusinessIdea}

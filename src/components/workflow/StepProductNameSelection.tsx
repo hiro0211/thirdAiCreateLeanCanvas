@@ -1,12 +1,26 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Tag, ArrowRight, ArrowLeft, CheckCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useWorkflowStore } from '@/stores/workflow-store';
-import { ProductName } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { motion } from "framer-motion";
+import {
+  Tag,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle,
+  ThumbsUp,
+  ThumbsDown,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useWorkflowStore } from "@/stores/workflow-store";
+import { RetryableErrorDisplay } from "@/components/ui/error-display";
+import { ProductName } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function StepProductNameSelection() {
   const {
@@ -14,6 +28,7 @@ export function StepProductNameSelection() {
     selectedProductName,
     isLoading,
     error,
+    generateProductNames,
     selectProductName,
     generateLeanCanvas,
     goToNextStep,
@@ -26,7 +41,7 @@ export function StepProductNameSelection() {
 
   const handleNext = async () => {
     if (!selectedProductName) return;
-    
+
     await generateLeanCanvas();
     if (!error) {
       goToNextStep();
@@ -63,15 +78,11 @@ export function StepProductNameSelection() {
         </p>
       </div>
 
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
-        >
-          {error}
-        </motion.div>
-      )}
+      <RetryableErrorDisplay
+        error={error}
+        onRetry={generateProductNames}
+        retryLabel="プロダクト名を再生成"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {productNames.map((name, index) => (
@@ -85,10 +96,10 @@ export function StepProductNameSelection() {
           >
             <Card
               className={cn(
-                'cursor-pointer transition-all duration-300 hover:shadow-xl border-2 h-full',
+                "cursor-pointer transition-all duration-300 hover:shadow-xl border-2 h-full",
                 selectedProductName?.id === name.id
-                  ? 'border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-accent/5'
-                  : 'border-gray-200 hover:border-primary/50'
+                  ? "border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-accent/5"
+                  : "border-gray-200 hover:border-primary/50"
               )}
               onClick={() => handleNameSelect(name)}
             >
@@ -107,7 +118,7 @@ export function StepProductNameSelection() {
                 </CardTitle>
                 <div className="w-full h-1 bg-gradient-primary rounded-full"></div>
               </CardHeader>
-              
+
               <CardContent className="space-y-4">
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2 flex items-center space-x-2">
@@ -118,7 +129,7 @@ export function StepProductNameSelection() {
                     {name.reason}
                   </p>
                 </div>
-                
+
                 <div className="grid grid-cols-1 gap-3">
                   <div>
                     <h5 className="font-medium text-gray-700 text-sm mb-2 flex items-center space-x-1">
@@ -129,7 +140,7 @@ export function StepProductNameSelection() {
                       {name.pros}
                     </p>
                   </div>
-                  
+
                   <div>
                     <h5 className="font-medium text-gray-700 text-sm mb-2 flex items-center space-x-1">
                       <ThumbsDown className="w-4 h-4 text-orange-600" />
@@ -157,10 +168,7 @@ export function StepProductNameSelection() {
           <span>戻る</span>
         </Button>
 
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={handleNext}
             disabled={!selectedProductName || isLoading}
@@ -179,7 +187,9 @@ export function StepProductNameSelection() {
               <ArrowRight className="w-5 h-5" />
             )}
             <span>
-              {isLoading ? 'リーンキャンバスを生成中...' : 'リーンキャンバスを生成'}
+              {isLoading
+                ? "リーンキャンバスを生成中..."
+                : "リーンキャンバスを生成"}
             </span>
           </Button>
         </motion.div>
@@ -200,7 +210,8 @@ export function StepProductNameSelection() {
             {selectedProductName.name}
           </div>
           <p className="text-sm text-gray-700">
-            <span className="font-medium">選択理由:</span> {selectedProductName.reason}
+            <span className="font-medium">選択理由:</span>{" "}
+            {selectedProductName.reason}
           </p>
         </motion.div>
       )}

@@ -30,6 +30,7 @@ import {
   getDynamicClasses,
 } from "@/lib/constants/css-classes";
 import { getBlockTitle } from "@/lib/utils/message-helpers";
+import { ErrorDisplay } from "@/components/ui/error-display";
 
 export function StepLeanCanvasDisplay() {
   const { leanCanvasData, selectedProductName, resetWorkflow } =
@@ -37,11 +38,14 @@ export function StepLeanCanvasDisplay() {
 
   if (!leanCanvasData) {
     return (
-      <div className="text-center">
-        <p className="text-lg text-gray-600">
-          {ERROR_MESSAGES.LEAN_CANVAS_GENERATION_FAILED}
-        </p>
-        <Button onClick={resetWorkflow} className="mt-4">
+      <div className="text-center max-w-2xl mx-auto mt-8">
+        <ErrorDisplay
+          error={ERROR_MESSAGES.LEAN_CANVAS_GENERATION_FAILED}
+          onRetry={() => window.location.reload()}
+          retryLabel={UI_LABELS.START_OVER}
+          className="mb-4"
+        />
+        <Button onClick={resetWorkflow} size="lg" className="mt-4">
           {UI_LABELS.START_OVER}
         </Button>
       </div>

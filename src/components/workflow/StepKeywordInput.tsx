@@ -1,13 +1,20 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useWorkflowStore } from '@/stores/workflow-store';
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Sparkles, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useWorkflowStore } from "@/stores/workflow-store";
+import { RetryableErrorDisplay } from "@/components/ui/error-display";
 
 export function StepKeywordInput() {
   const {
@@ -23,7 +30,7 @@ export function StepKeywordInput() {
 
   const handleSubmit = async () => {
     if (!localKeyword.trim()) return;
-    
+
     setKeyword(localKeyword.trim());
     await generatePersonas();
     if (!error) {
@@ -32,7 +39,7 @@ export function StepKeywordInput() {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isLoading) {
+    if (e.key === "Enter" && !isLoading) {
       handleSubmit();
     }
   };
@@ -69,7 +76,10 @@ export function StepKeywordInput() {
 
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Label htmlFor="keyword" className="text-base font-semibold text-gray-700">
+            <Label
+              htmlFor="keyword"
+              className="text-base font-semibold text-gray-700"
+            >
               ビジネスキーワードを入力してください
             </Label>
             <div className="relative" data-tutorial="keyword-input">
@@ -94,15 +104,11 @@ export function StepKeywordInput() {
             </div>
           </div>
 
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
-            >
-              {error}
-            </motion.div>
-          )}
+          <RetryableErrorDisplay
+            error={error}
+            onRetry={generatePersonas}
+            retryLabel="ペルソナを再生成"
+          />
 
           <motion.div
             className="pt-4"
@@ -127,7 +133,7 @@ export function StepKeywordInput() {
               ) : (
                 <ArrowRight className="w-5 h-5 mr-2" />
               )}
-              {isLoading ? 'ペルソナを生成中...' : 'ペルソナを生成'}
+              {isLoading ? "ペルソナを生成中..." : "ペルソナを生成"}
             </Button>
           </motion.div>
 
@@ -142,7 +148,9 @@ export function StepKeywordInput() {
             <ul className="text-sm text-gray-600 space-y-1">
               <li>• 具体的な業界や技術に関するキーワードが効果的です</li>
               <li>• 複数のキーワードを組み合わせることも可能です</li>
-              <li>• 新しいトレンドや社会課題に関連するキーワードもおすすめです</li>
+              <li>
+                • 新しいトレンドや社会課題に関連するキーワードもおすすめです
+              </li>
             </ul>
           </motion.div>
         </CardContent>

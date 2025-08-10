@@ -1,12 +1,19 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Users, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useWorkflowStore } from '@/stores/workflow-store';
-import { Persona } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { motion } from "framer-motion";
+import { Users, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useWorkflowStore } from "@/stores/workflow-store";
+import { RetryableErrorDisplay } from "@/components/ui/error-display";
+import { Persona } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function StepPersonaSelection() {
   const {
@@ -26,7 +33,7 @@ export function StepPersonaSelection() {
 
   const handleNext = async () => {
     if (!selectedPersona) return;
-    
+
     await generateBusinessIdeas();
     if (!error) {
       goToNextStep();
@@ -62,17 +69,16 @@ export function StepPersonaSelection() {
         </p>
       </div>
 
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
-        >
-          {error}
-        </motion.div>
-      )}
+      <RetryableErrorDisplay
+        error={error}
+        onRetry={generateBusinessIdeas}
+        retryLabel="ビジネスアイデアを再生成"
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" data-tutorial="persona-cards">
+      <div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+        data-tutorial="persona-cards"
+      >
         {personas.map((persona, index) => (
           <motion.div
             key={persona.id}
@@ -84,10 +90,10 @@ export function StepPersonaSelection() {
           >
             <Card
               className={cn(
-                'cursor-pointer transition-all duration-300 hover:shadow-xl border-2',
+                "cursor-pointer transition-all duration-300 hover:shadow-xl border-2",
                 selectedPersona?.id === persona.id
-                  ? 'border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-accent/5'
-                  : 'border-gray-200 hover:border-primary/50'
+                  ? "border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-accent/5"
+                  : "border-gray-200 hover:border-primary/50"
               )}
               onClick={() => handlePersonaSelect(persona)}
             >
@@ -112,7 +118,7 @@ export function StepPersonaSelection() {
                     {persona.description}
                   </p>
                 </div>
-                
+
                 <div className="space-y-3">
                   <div>
                     <h5 className="font-medium text-gray-700 text-sm mb-1">
@@ -122,7 +128,7 @@ export function StepPersonaSelection() {
                       {persona.needs.explicit}
                     </p>
                   </div>
-                  
+
                   <div>
                     <h5 className="font-medium text-gray-700 text-sm mb-1">
                       潜在的ニーズ
@@ -149,10 +155,7 @@ export function StepPersonaSelection() {
           <span>戻る</span>
         </Button>
 
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={handleNext}
             disabled={!selectedPersona || isLoading}
@@ -170,7 +173,9 @@ export function StepPersonaSelection() {
               <ArrowRight className="w-5 h-5" />
             )}
             <span>
-              {isLoading ? 'ビジネスアイデアを生成中...' : 'ビジネスアイデアを生成'}
+              {isLoading
+                ? "ビジネスアイデアを生成中..."
+                : "ビジネスアイデアを生成"}
             </span>
           </Button>
         </motion.div>
