@@ -24,6 +24,7 @@ export abstract class TaskProcessor<TRequest, TResponse> {
   abstract buildDifyRequest(request: TRequest): DifyRequest;
   abstract getTaskName(): string;
   abstract getValidationErrorMessage(): string;
+  abstract formatResponse(normalizedData: any): TResponse;
 
   async process(body: any): Promise<TResponse> {
     if (!this.validateRequest(body)) {
@@ -42,7 +43,7 @@ export abstract class TaskProcessor<TRequest, TResponse> {
       );
     }
 
-    return normalizedData as TResponse;
+    return this.formatResponse(normalizedData);
   }
 }
 
@@ -74,27 +75,12 @@ export class PersonaTaskProcessor extends TaskProcessor<
     return "キーワードが必要です";
   }
 
-  async process(body: any): Promise<DifyPersonaResponse> {
-    if (!this.validateRequest(body)) {
-      throw new Error(this.getValidationErrorMessage());
-    }
-
-    const difyRequest = this.buildDifyRequest(body);
-    const rawResult = await this.difyClient.callApi(difyRequest);
-
-    const normalizer = NormalizerFactory.create(this.getTaskName());
-    const normalizedData = normalizer.normalize(rawResult);
-
-    if (!normalizer.validate(normalizedData)) {
-      throw new Error(
-        `Difyから${this.getTaskName()}データが返されませんでした`
-      );
-    }
-
+  formatResponse(normalizedData: any): DifyPersonaResponse {
     return {
       personas: normalizedData as Persona[],
     };
   }
+
 }
 
 export class BusinessIdeaTaskProcessor extends TaskProcessor<
@@ -123,27 +109,12 @@ export class BusinessIdeaTaskProcessor extends TaskProcessor<
     return "ペルソナが必要です";
   }
 
-  async process(body: any): Promise<DifyBusinessIdeaResponse> {
-    if (!this.validateRequest(body)) {
-      throw new Error(this.getValidationErrorMessage());
-    }
-
-    const difyRequest = this.buildDifyRequest(body);
-    const rawResult = await this.difyClient.callApi(difyRequest);
-
-    const normalizer = NormalizerFactory.create(this.getTaskName());
-    const normalizedData = normalizer.normalize(rawResult);
-
-    if (!normalizer.validate(normalizedData)) {
-      throw new Error(
-        `Difyから${this.getTaskName()}データが返されませんでした`
-      );
-    }
-
+  formatResponse(normalizedData: any): DifyBusinessIdeaResponse {
     return {
       business_ideas: normalizedData as BusinessIdea[],
     };
   }
+
 }
 
 export class ProductNameTaskProcessor extends TaskProcessor<
@@ -182,27 +153,12 @@ export class ProductNameTaskProcessor extends TaskProcessor<
     return "必要な情報が不足しています";
   }
 
-  async process(body: any): Promise<DifyProductNameResponse> {
-    if (!this.validateRequest(body)) {
-      throw new Error(this.getValidationErrorMessage());
-    }
-
-    const difyRequest = this.buildDifyRequest(body);
-    const rawResult = await this.difyClient.callApi(difyRequest);
-
-    const normalizer = NormalizerFactory.create(this.getTaskName());
-    const normalizedData = normalizer.normalize(rawResult);
-
-    if (!normalizer.validate(normalizedData)) {
-      throw new Error(
-        `Difyから${this.getTaskName()}データが返されませんでした`
-      );
-    }
-
+  formatResponse(normalizedData: any): DifyProductNameResponse {
     return {
       product_names: normalizedData as ProductName[],
     };
   }
+
 }
 
 export class CanvasTaskProcessor extends TaskProcessor<
@@ -241,25 +197,10 @@ export class CanvasTaskProcessor extends TaskProcessor<
     return "必要な情報が不足しています";
   }
 
-  async process(body: any): Promise<LeanCanvasData> {
-    if (!this.validateRequest(body)) {
-      throw new Error(this.getValidationErrorMessage());
-    }
-
-    const difyRequest = this.buildDifyRequest(body);
-    const rawResult = await this.difyClient.callApi(difyRequest);
-
-    const normalizer = NormalizerFactory.create(this.getTaskName());
-    const normalizedData = normalizer.normalize(rawResult);
-
-    if (!normalizer.validate(normalizedData)) {
-      throw new Error(
-        `Difyから${this.getTaskName()}データが返されませんでした`
-      );
-    }
-
+  formatResponse(normalizedData: any): LeanCanvasData {
     return normalizedData as LeanCanvasData;
   }
+
 }
 
 export class TaskProcessorFactory {

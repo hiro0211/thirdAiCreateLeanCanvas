@@ -19,7 +19,24 @@ import {
   WORKFLOW_STEPS,
   TUTORIAL_MESSAGES,
 } from "@/lib/constants/messages";
-import { difyApiClient, DifyApiError } from "@/lib/utils/dify-api-client";
+// Helper function to call the Dify API
+async function callDifyApi<T>(request: any): Promise<ApiResponse<T>> {
+  const response = await fetch('/api/dify', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  });
+
+  const result: ApiResponse<T> = await response.json();
+  
+  if (!result.success) {
+    throw new Error(result.error?.message || 'API call failed');
+  }
+  
+  return result;
+}
 
 interface WorkflowState {
   // Current state
@@ -101,7 +118,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const result = await difyApiClient.callApi<DifyPersonaResponse>({
+      const result = await callDifyApi<DifyPersonaResponse>({
         task: "persona",
         keyword: keyword.trim(),
       });
@@ -140,7 +157,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const result = await difyApiClient.callApi<DifyBusinessIdeaResponse>({
+      const result = await callDifyApi<DifyBusinessIdeaResponse>({
         task: "businessidea",
         persona: selectedPersona,
       });
@@ -188,7 +205,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const result = await difyApiClient.callApi<DifyProductNameResponse>({
+      const result = await callDifyApi<DifyProductNameResponse>({
         task: "productname",
         persona: selectedPersona,
         business_idea: selectedBusinessIdea,
@@ -226,7 +243,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const result = await difyApiClient.callApi<LeanCanvasData>({
+      const result = await callDifyApi<LeanCanvasData>({
         task: "canvas",
         persona: selectedPersona,
         business_idea: selectedBusinessIdea,

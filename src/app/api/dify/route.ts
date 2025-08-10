@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
     } as ApiResponse<typeof result>);
     
   } catch (error) {
-    let errorMessage = ERROR_MESSAGES.SERVER_ERROR;
-    let statusCode = API_CONFIG.STATUS_CODES.INTERNAL_SERVER_ERROR;
+    let errorMessage: string = ERROR_MESSAGES.SERVER_ERROR;
+    let statusCode: number = API_CONFIG.STATUS_CODES.INTERNAL_SERVER_ERROR;
 
     if (error instanceof Error) {
       if (error.message.includes("タイムアウト")) {

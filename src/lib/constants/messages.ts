@@ -211,9 +211,4 @@ export const TUTORIAL_MESSAGES = {
     "リセットボタンで最初からやり直したり、テーマ切り替えボタンでダークモードを楽しんだりできます。いつでもこのチュートリアルを再表示することも可能です。",
 } as const;
 
-// 国際化対応のためのヘルパー関数（将来の拡張用）
-export const getMessage = (key: string, locale: string = "ja"): string => {
-  // 将来的にはlocaleに基づいて適切なメッセージを返す
-  // 現在は日本語のみ対応
-  return key;
-};
+// 国際化対応のためのヘルパー関数は message-helpers.ts で提供されています
