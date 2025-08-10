@@ -91,12 +91,14 @@ src/
 ### コア機能とファイルの役割
 
 #### 🎯 **ワークフロー管理**
+
 - **`workflow-store.ts`**: Zustandによる中央状態管理
   - 現在のステップ、ユーザー選択、API レスポンスを管理
   - 非同期API呼び出しとエラーハンドリング
   - ステップ間のデータ流れを制御
 
 #### 🔌 **Dify API統合**
+
 - **`route.ts`**: BFF (Backend for Frontend) パターン
   - フロントエンドとDify APIの仲介
   - タスクベースルーティング (persona, businessidea, productname, canvas)
@@ -109,21 +111,24 @@ src/
   - データバリデーションと変換
 
 #### 🎨 **UI/UXコンポーネント**
+
 - **`page.tsx`**: メインページコントローラー
   - ワークフロー状態に基づくコンポーネント制御
   - ステップ間の遷移管理
-- **ワークフローステップコンポーネント**: 
+- **ワークフローステップコンポーネント**:
   - 各ステップ専用のUI (入力フォーム、選択インターフェース)
   - Framer Motionアニメーション統合
   - レスポンシブデザイン対応
 
 #### 📊 **データフロー**
+
 1. **フロントエンド** → `workflow-store.ts` → API呼び出し
 2. **API Route** (`route.ts`) → データ検証 → Dify API
 3. **Dify Response** → 正規化 (`normalizers.ts`) → フロントエンド
 4. **UI更新** → 次ステップへ遷移
 
 #### 🛠️ **開発支援機能**
+
 - **型安全性**: `types.ts`による厳密な型定義
 - **モックデータ**: `mock-generator.ts`による開発時データ生成
 - **ログ機能**: `logger.ts`によるデバッグ支援
@@ -226,32 +231,36 @@ npm run lint
 ### 🔤 **命名規則 (Naming Conventions)**
 
 #### **PascalCase** - パスカルケース
+
 - **使用箇所**: React コンポーネント、TypeScript 型/インターフェース、クラス
-- **例**: 
+- **例**:
+
   ```typescript
   // コンポーネント
   export function WorkflowStepper() {}
   export function StepKeywordInput() {}
-  
+
   // 型定義
   interface PersonaData {}
   interface BusinessIdea {}
   type WorkflowStep = "keyword" | "persona-selection";
-  
+
   // クラス
   export class TaskProcessor {}
   export class DifyApiClient {}
   ```
 
-#### **camelCase** - キャメルケース  
+#### **camelCase** - キャメルケース
+
 - **使用箇所**: 変数、関数、オブジェクトプロパティ（TypeScript内部）
 - **例**:
+
   ```typescript
   // 変数・関数
   const currentStep = 1;
   const selectedPersona = null;
   function generatePersonas() {}
-  
+
   // オブジェクトプロパティ（TypeScript内部）
   interface LeanCanvasData {
     keyMetrics: string[];
@@ -264,21 +273,23 @@ npm run lint
   ```
 
 #### **snake_case** - スネークケース
+
 - **使用箇所**: JSON API フィールド、Dify API との通信データ
 - **例**:
+
   ```typescript
   // Dify API リクエスト/レスポンス
   interface BusinessIdea {
     idea_text: string;      // Dify APIのフィールド名
     osborn_hint: string;    // Dify APIのフィールド名
   }
-  
+
   interface DifyResponse {
     business_ideas: BusinessIdea[];  // Dify APIのレスポンス
     product_names: ProductName[];    // Dify APIのレスポンス
   }
-  
-  // HTTP APIフィールド  
+
+  // HTTP APIフィールド
   {
     "response_mode": "blocking",
     "conversation_id": "",
@@ -288,8 +299,10 @@ npm run lint
   ```
 
 #### **UPPER_SNAKE_CASE** - アッパースネークケース
+
 - **使用箇所**: 定数、設定値、エラーメッセージ
 - **例**:
+
   ```typescript
   // 定数定義
   export const ERROR_MESSAGES = {
@@ -297,12 +310,12 @@ npm run lint
     PERSONA_GENERATION_FAILED: "ペルソナ生成に失敗しました",
     REQUIRED_INFO_MISSING: "必要な情報が不足しています"
   };
-  
+
   export const ANIMATION_CONFIG = {
     DURATION: 0.3,
     EASING: "ease-in-out"
   };
-  
+
   export const API_CONFIG = {
     DEFAULT_TIMEOUT: 60000,
     STATUS_CODES: {...}
@@ -310,20 +323,22 @@ npm run lint
   ```
 
 #### **kebab-case** - ケバブケース
+
 - **使用箇所**: ファイル名（一部）、CSS クラス名、ステップ識別子
 - **例**:
+
   ```typescript
   // ワークフローステップ識別子
-  type WorkflowStep = 
+  type WorkflowStep =
     | "keyword"
-    | "persona-selection"      // kebab-case
-    | "business-idea-selection" // kebab-case  
+    | "persona-selection" // kebab-case
+    | "business-idea-selection" // kebab-case
     | "details-input"
     | "product-name-selection"
     | "canvas-display";
-  
+
   // CSS クラス名（Tailwind）
-  className="flex-col md:flex-row justify-center items-center"
+  className = "flex-col md:flex-row justify-center items-center";
   ```
 
 ### 🎯 **規則の適用理由**
@@ -339,7 +354,7 @@ npm run lint
 📁 コンポーネントファイル: PascalCase.tsx
    └── WorkflowStepper.tsx, StepKeywordInput.tsx
 
-📁 ユーティリティファイル: kebab-case.ts  
+📁 ユーティリティファイル: kebab-case.ts
    └── workflow-store.ts, message-helpers.ts
 
 📁 設定ファイル: kebab-case.ts
