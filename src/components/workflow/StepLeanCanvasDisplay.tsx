@@ -18,8 +18,8 @@ import {
   getBlockByNumber,
   getBlockData,
   getBlocksForColumn,
-  type LeanCanvasData,
 } from "@/lib/constants/canvas-structure";
+import { type LeanCanvasData } from "@/lib/types";
 import {
   CONTAINER_CLASSES,
   HEADER_CLASSES,

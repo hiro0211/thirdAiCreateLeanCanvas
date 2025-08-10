@@ -99,7 +99,7 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
               <div className="text-center md:text-left">
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  © 2024 AI Lean Canvas Creator. Powered by{" "}
+                  © 2025 AI Lean Canvas Creator. Powered by{" "}
                   <span className="font-semibold bg-gradient-primary bg-clip-text text-transparent">
                     Dify AI
                   </span>

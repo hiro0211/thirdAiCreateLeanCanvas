@@ -1,17 +1,5 @@
 // リーンキャンバスの構造定義
-
-// リーンキャンバスデータ型（簡略化）
-export interface LeanCanvasData {
-  problem: string[];
-  solution: string[];
-  uniqueValueProposition: string[];
-  unfairAdvantage: string[];
-  customerSegments: string[];
-  keyMetrics: string[];
-  channels: string[];
-  costStructure: string[];
-  revenueStreams: string[];
-}
+import { LeanCanvasData } from "../types";
 
 // キャンバスブロックの型定義
 export interface CanvasBlockConfig {
@@ -139,5 +127,5 @@ export const getBlocksForColumn = (
       ? CANVAS_DISPLAY_ORDER.TOP_SECTION
       : CANVAS_DISPLAY_ORDER.BOTTOM_SECTION;
   const columnData = sectionData.find((col) => col.col === column);
-  return columnData?.blocks || [];
+  return [...(columnData?.blocks || [])];
 };

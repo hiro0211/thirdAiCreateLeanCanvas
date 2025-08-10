@@ -219,6 +219,136 @@ npx tsc --noEmit
 npm run lint
 ```
 
+## 📝 コーディング規約・命名規則
+
+このプロジェクトでは以下の命名規則を採用しています：
+
+### 🔤 **命名規則 (Naming Conventions)**
+
+#### **PascalCase** - パスカルケース
+- **使用箇所**: React コンポーネント、TypeScript 型/インターフェース、クラス
+- **例**: 
+  ```typescript
+  // コンポーネント
+  export function WorkflowStepper() {}
+  export function StepKeywordInput() {}
+  
+  // 型定義
+  interface PersonaData {}
+  interface BusinessIdea {}
+  type WorkflowStep = "keyword" | "persona-selection";
+  
+  // クラス
+  export class TaskProcessor {}
+  export class DifyApiClient {}
+  ```
+
+#### **camelCase** - キャメルケース  
+- **使用箇所**: 変数、関数、オブジェクトプロパティ（TypeScript内部）
+- **例**:
+  ```typescript
+  // 変数・関数
+  const currentStep = 1;
+  const selectedPersona = null;
+  function generatePersonas() {}
+  
+  // オブジェクトプロパティ（TypeScript内部）
+  interface LeanCanvasData {
+    keyMetrics: string[];
+    uniqueValueProposition: string[];
+    unfairAdvantage: string[];
+    customerSegments: string[];
+    costStructure: string[];
+    revenueStreams: string[];
+  }
+  ```
+
+#### **snake_case** - スネークケース
+- **使用箇所**: JSON API フィールド、Dify API との通信データ
+- **例**:
+  ```typescript
+  // Dify API リクエスト/レスポンス
+  interface BusinessIdea {
+    idea_text: string;      // Dify APIのフィールド名
+    osborn_hint: string;    // Dify APIのフィールド名
+  }
+  
+  interface DifyResponse {
+    business_ideas: BusinessIdea[];  // Dify APIのレスポンス
+    product_names: ProductName[];    // Dify APIのレスポンス
+  }
+  
+  // HTTP APIフィールド  
+  {
+    "response_mode": "blocking",
+    "conversation_id": "",
+    "business_idea": {...},
+    "product_details": {...}
+  }
+  ```
+
+#### **UPPER_SNAKE_CASE** - アッパースネークケース
+- **使用箇所**: 定数、設定値、エラーメッセージ
+- **例**:
+  ```typescript
+  // 定数定義
+  export const ERROR_MESSAGES = {
+    KEYWORD_REQUIRED: "キーワードを入力してください",
+    PERSONA_GENERATION_FAILED: "ペルソナ生成に失敗しました",
+    REQUIRED_INFO_MISSING: "必要な情報が不足しています"
+  };
+  
+  export const ANIMATION_CONFIG = {
+    DURATION: 0.3,
+    EASING: "ease-in-out"
+  };
+  
+  export const API_CONFIG = {
+    DEFAULT_TIMEOUT: 60000,
+    STATUS_CODES: {...}
+  };
+  ```
+
+#### **kebab-case** - ケバブケース
+- **使用箇所**: ファイル名（一部）、CSS クラス名、ステップ識別子
+- **例**:
+  ```typescript
+  // ワークフローステップ識別子
+  type WorkflowStep = 
+    | "keyword"
+    | "persona-selection"      // kebab-case
+    | "business-idea-selection" // kebab-case  
+    | "details-input"
+    | "product-name-selection"
+    | "canvas-display";
+  
+  // CSS クラス名（Tailwind）
+  className="flex-col md:flex-row justify-center items-center"
+  ```
+
+### 🎯 **規則の適用理由**
+
+1. **外部API連携**: Dify API が snake_case を使用するため、API層では snake_case を採用
+2. **TypeScript慣習**: TypeScript/React エコシステムの標準に従い camelCase/PascalCase を採用
+3. **設定管理**: 定数は変更されない値として UPPER_SNAKE_CASE で明確化
+4. **一貫性**: 各層で一貫した命名規則を適用し、コードの可読性を向上
+
+### 📋 **ファイル命名規則**
+
+```
+📁 コンポーネントファイル: PascalCase.tsx
+   └── WorkflowStepper.tsx, StepKeywordInput.tsx
+
+📁 ユーティリティファイル: kebab-case.ts  
+   └── workflow-store.ts, message-helpers.ts
+
+📁 設定ファイル: kebab-case.ts
+   └── env-config.ts, app-constants.ts
+
+📁 型定義ファイル: camelCase.ts
+   └── types.ts, utils.ts
+```
+
 ## 🎨 カスタマイズ
 
 - **テーマ**: `src/app/globals.css`でカラーテーマをカスタマイズ

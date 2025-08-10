@@ -159,53 +159,11 @@ task: "canvas" → リーンキャンバス生成フローを実行
 Dify APIから返されるJSONの型を厳密に定義してください。これにより、JSONパースエラーのリスクをなくし、コードの安全性を確保します。
 
 ```typescript
-// Difyの各タスクからのレスポンスJSONの型
-export interface Persona {
-  id: number;
-  description: string;
-  needs: {
-    explicit: string;
-    implicit: string;
-  };
-}
-
-export interface BusinessIdea {
-  id: number;
-  idea_text: string;
-  osborn_hint: string;
-}
-
-export interface ProductName {
-  id: number;
-  name: string;
-  reason: string;
-  pros: string;
-  cons: string;
-}
-
-export interface LeanCanvasData {
-  problem: string[];
-  solution: string[];
-  keyMetrics: string[];
-  uniqueValueProposition: string[];
-  unfairAdvantage: string[];
-  channels: string[];
-  customerSegments: string[];
-  costStructure: string[];
-  revenueStreams: string[];
-}
-
-// Dify APIからのレスポンスの型（トップレベルのキーを含む）
-export interface DifyPersonaResponse {
-  personas: Persona[];
-}
-export interface DifyBusinessIdeaResponse {
-  business_ideas: BusinessIdea[];
-}
-export interface DifyProductNameResponse {
-  product_names: ProductName[];
-}
-// リーンキャンバスはLeanCanvasDataがそのまま返る
+// 型定義は src/lib/types.ts で一元管理されています
+// 以下のような型が定義されています：
+// - Persona, BusinessIdea, ProductName, LeanCanvasData
+// - DifyPersonaResponse, DifyBusinessIdeaResponse, DifyProductNameResponse
+// - その他のAPI関連の型定義
 ```
 
 6-2. 状態管理 (Zustand - src/stores/workflow-store.ts)

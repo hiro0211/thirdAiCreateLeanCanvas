@@ -15,6 +15,28 @@ export abstract class DataNormalizer<TInput, TOutput> {
 }
 
 export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
+  private extractPersonaNeeds(persona: any, needType: 'explicit' | 'implicit'): string {
+    const possibleKeys = [
+      `${needType}`,
+      `${needType}_needs`,
+      `needs.${needType}`
+    ];
+    
+    // Check persona.needs first
+    if (persona.needs?.[needType]) {
+      return persona.needs[needType];
+    }
+    
+    // Check direct properties
+    for (const key of possibleKeys) {
+      if (persona[key]) {
+        return persona[key];
+      }
+    }
+    
+    return "";
+  }
+
   normalize(data: any): Persona[] {
     let personas: any[] = [];
 
@@ -39,16 +61,8 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
         id: persona.id || index + 1,
         description: persona.description || persona.text || String(persona),
         needs: {
-          explicit:
-            persona.needs?.explicit ||
-            persona.explicit_needs ||
-            persona.explicit ||
-            "",
-          implicit:
-            persona.needs?.implicit ||
-            persona.implicit_needs ||
-            persona.implicit ||
-            "",
+          explicit: this.extractPersonaNeeds(persona, 'explicit'),
+          implicit: this.extractPersonaNeeds(persona, 'implicit'),
         },
       }));
     }
@@ -62,25 +76,34 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
 }
 
 export class BusinessIdeaNormalizer extends DataNormalizer<any, BusinessIdea[]> {
-  normalize(data: any): BusinessIdea[] {
-    let businessIdeas: any[] = [];
-
-    if (data.business_ideas) {
-      businessIdeas = data.business_ideas;
-    } else if (data.ideas) {
-      businessIdeas = data.ideas;
-    } else if (Array.isArray(data)) {
-      businessIdeas = data;
-    } else {
-      businessIdeas = data.data || data.output || [];
+  private extractIdeaText(idea: any): string {
+    const possibleKeys = ['idea_text', 'idea', 'text'];
+    for (const key of possibleKeys) {
+      if (idea[key]) {
+        return idea[key];
+      }
     }
+    return String(idea);
+  }
 
-    // Normalize business idea data
+  private extractOsbornHint(idea: any): string {
+    const possibleKeys = ['osborn_hint', 'hint', 'reasoning'];
+    for (const key of possibleKeys) {
+      if (idea[key]) {
+        return idea[key];
+      }
+    }
+    return "";
+  }
+
+  normalize(data: any): BusinessIdea[] {
+    const businessIdeas = this.extractArray(data, ['business_ideas', 'ideas']);
+
     if (Array.isArray(businessIdeas)) {
       return businessIdeas.map((idea: any, index: number) => ({
         id: idea.id || index + 1,
-        idea_text: idea.idea_text || idea.idea || idea.text || String(idea),
-        osborn_hint: idea.osborn_hint || idea.hint || idea.reasoning || "",
+        idea_text: this.extractIdeaText(idea),
+        osborn_hint: this.extractOsbornHint(idea),
       }));
     }
 
@@ -93,27 +116,42 @@ export class BusinessIdeaNormalizer extends DataNormalizer<any, BusinessIdea[]> 
 }
 
 export class ProductNameNormalizer extends DataNormalizer<any, ProductName[]> {
-  normalize(data: any): ProductName[] {
-    let productNames: any[] = [];
-
-    if (data.product_names) {
-      productNames = data.product_names;
-    } else if (data.names) {
-      productNames = data.names;
-    } else if (Array.isArray(data)) {
-      productNames = data;
-    } else {
-      productNames = data.data || data.output || [];
+  private extractProductName(nameData: any): string {
+    const possibleKeys = ['name', 'product_name'];
+    for (const key of possibleKeys) {
+      if (nameData[key]) {
+        return nameData[key];
+      }
     }
+    return String(nameData);
+  }
 
-    // Normalize product name data
+  private extractProductField(nameData: any, fieldType: 'reason' | 'pros' | 'cons'): string {
+    const fieldMappings = {
+      reason: ['reason', 'reasoning', 'explanation'],
+      pros: ['pros', 'advantages', 'benefits'],
+      cons: ['cons', 'disadvantages', 'drawbacks']
+    };
+
+    const possibleKeys = fieldMappings[fieldType];
+    for (const key of possibleKeys) {
+      if (nameData[key]) {
+        return nameData[key];
+      }
+    }
+    return "";
+  }
+
+  normalize(data: any): ProductName[] {
+    const productNames = this.extractArray(data, ['product_names', 'names']);
+
     if (Array.isArray(productNames)) {
       return productNames.map((name: any, index: number) => ({
         id: name.id || index + 1,
-        name: name.name || name.product_name || String(name),
-        reason: name.reason || name.reasoning || name.explanation || "",
-        pros: name.pros || name.advantages || name.benefits || "",
-        cons: name.cons || name.disadvantages || name.drawbacks || "",
+        name: this.extractProductName(name),
+        reason: this.extractProductField(name, 'reason'),
+        pros: this.extractProductField(name, 'pros'),
+        cons: this.extractProductField(name, 'cons'),
       }));
     }
 
@@ -126,62 +164,46 @@ export class ProductNameNormalizer extends DataNormalizer<any, ProductName[]> {
 }
 
 export class CanvasNormalizer extends DataNormalizer<any, LeanCanvasData> {
+  private extractCanvasField(data: any, possibleKeys: string[]): string[] {
+    for (const key of possibleKeys) {
+      if (Array.isArray(data[key])) {
+        return data[key];
+      }
+    }
+    return [];
+  }
+
   normalize(data: any): LeanCanvasData {
-    // Normalize lean canvas data
     return {
-      problem: Array.isArray(data.problem)
-        ? data.problem
-        : Array.isArray(data.problems)
-          ? data.problems
-          : [],
-      solution: Array.isArray(data.solution)
-        ? data.solution
-        : Array.isArray(data.solutions)
-          ? data.solutions
-          : [],
-      keyMetrics: Array.isArray(data.key_metrics)
-        ? data.key_metrics
-        : Array.isArray(data.keyMetrics)
-          ? data.keyMetrics
-          : Array.isArray(data.metrics)
-            ? data.metrics
-            : [],
-      uniqueValueProposition: Array.isArray(data.unique_value_proposition)
-        ? data.unique_value_proposition
-        : Array.isArray(data.uniqueValueProposition)
-          ? data.uniqueValueProposition
-          : Array.isArray(data.value_proposition)
-            ? data.value_proposition
-            : [],
-      unfairAdvantage: Array.isArray(data.unfair_advantage)
-        ? data.unfair_advantage
-        : Array.isArray(data.unfairAdvantage)
-          ? data.unfairAdvantage
-          : Array.isArray(data.advantage)
-            ? data.advantage
-            : [],
-      channels: Array.isArray(data.channels) ? data.channels : [],
-      customerSegments: Array.isArray(data.customer_segments)
-        ? data.customer_segments
-        : Array.isArray(data.customerSegments)
-          ? data.customerSegments
-          : Array.isArray(data.segments)
-            ? data.segments
-            : [],
-      costStructure: Array.isArray(data.cost_structure)
-        ? data.cost_structure
-        : Array.isArray(data.costStructure)
-          ? data.costStructure
-          : Array.isArray(data.costs)
-            ? data.costs
-            : [],
-      revenueStreams: Array.isArray(data.revenue_streams)
-        ? data.revenue_streams
-        : Array.isArray(data.revenueStreams)
-          ? data.revenueStreams
-          : Array.isArray(data.revenue)
-            ? data.revenue
-            : [],
+      problem: this.extractCanvasField(data, ['problem', 'problems']),
+      solution: this.extractCanvasField(data, ['solution', 'solutions']),
+      keyMetrics: this.extractCanvasField(data, ['key_metrics', 'keyMetrics', 'metrics']),
+      uniqueValueProposition: this.extractCanvasField(data, [
+        'unique_value_proposition',
+        'uniqueValueProposition',
+        'value_proposition'
+      ]),
+      unfairAdvantage: this.extractCanvasField(data, [
+        'unfair_advantage',
+        'unfairAdvantage',
+        'advantage'
+      ]),
+      channels: this.extractCanvasField(data, ['channels']),
+      customerSegments: this.extractCanvasField(data, [
+        'customer_segments',
+        'customerSegments',
+        'segments'
+      ]),
+      costStructure: this.extractCanvasField(data, [
+        'cost_structure',
+        'costStructure',
+        'costs'
+      ]),
+      revenueStreams: this.extractCanvasField(data, [
+        'revenue_streams',
+        'revenueStreams',
+        'revenue'
+      ]),
     };
   }
 
