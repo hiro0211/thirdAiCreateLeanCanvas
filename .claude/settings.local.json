@@ -11,7 +11,9 @@
       "Bash(npm run typecheck:*)",
       "Bash(npx tsc:*)",
       "Bash(find:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm run type-check:*)"
     ],
     "deny": []
   }

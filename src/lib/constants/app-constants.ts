@@ -38,9 +38,9 @@ export const ANIMATION_CONFIG = {
   ITEM_INITIAL_X: -10,
 
   // 回転角度配列
-  HEADER_SCALE_KEYFRAMES: [1, 1.05, 1],
-  HEADER_ROTATE_KEYFRAMES: [0, 5, -5, 0],
-  SUCCESS_ROTATE_KEYFRAMES: [0, 10, -10, 0],
+  HEADER_SCALE_KEYFRAMES: [1, 1.05, 1] as number[],
+  HEADER_ROTATE_KEYFRAMES: [0, 5, -5, 0] as number[],
+  SUCCESS_ROTATE_KEYFRAMES: [0, 10, -10, 0] as number[],
 
   // 透明度設定
   INITIAL_OPACITY: 0,
