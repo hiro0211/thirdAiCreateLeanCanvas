@@ -30,9 +30,8 @@ export function Header() {
     >
       <div className="container flex h-14 sm:h-16 items-center justify-between px-4">
         {/* Logo and Title */}
-        <motion.div
-          className="flex items-center space-x-2 sm:space-x-3"
-          whileHover={{ scale: 1.02 }}
+        <div
+          className="flex items-center space-x-2 sm:space-x-3 transition-transform duration-200 ease-out hover:scale-105"
         >
           <motion.div
             className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-full flex items-center justify-center"
@@ -55,7 +54,7 @@ export function Header() {
               Powered by Dify AI
             </p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Navigation Info */}
         <div className="hidden lg:flex items-center space-x-4">
@@ -75,7 +74,7 @@ export function Header() {
           className="flex items-center space-x-1 sm:space-x-2"
           data-tutorial="header-actions"
         >
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <div className="transition-all duration-200 ease-out hover:scale-105 active:scale-95">
             <Button
               variant="outline"
               size="sm"
@@ -87,9 +86,9 @@ export function Header() {
                 チュートリアル
               </span>
             </Button>
-          </motion.div>
+          </div>
           {currentStep !== "keyword" && (
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <div className="transition-all duration-200 ease-out hover:scale-105 active:scale-95">
               <Button
                 variant="outline"
                 size="sm"
@@ -101,7 +100,7 @@ export function Header() {
                   リセット
                 </span>
               </Button>
-            </motion.div>
+            </div>
           )}
           <ThemeToggle />
         </div>
