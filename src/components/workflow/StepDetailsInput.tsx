@@ -122,9 +122,6 @@ export function StepDetailsInput() {
               placeholder="例: モバイルアプリ、Webサービス、IoTデバイス、コンサルティング..."
               className="text-sm sm:text-base py-3 sm:py-4 px-3 sm:px-4 border-2 rounded-xl min-h-[44px]"
             />
-            <p className="text-xs sm:text-sm text-gray-500">
-              あなたの商品やサービスがどのようなカテゴリーに属するかを記入してください
-            </p>
           </motion.div>
 
           <motion.div
@@ -146,9 +143,6 @@ export function StepDetailsInput() {
               placeholder="例: AI搭載、リアルタイム分析、シンプル操作、高セキュリティ..."
               className="text-sm sm:text-base py-3 sm:py-4 px-3 sm:px-4 border-2 rounded-xl min-h-[44px]"
             />
-            <p className="text-xs sm:text-sm text-gray-500">
-              商品・サービスの最も重要な特徴や機能を記入してください
-            </p>
           </motion.div>
 
           <motion.div
@@ -170,9 +164,6 @@ export function StepDetailsInput() {
               placeholder="例: 革新的、信頼性、親しみやすい、プレミアム、エコフレンドリー..."
               className="text-sm sm:text-base py-3 sm:py-4 px-3 sm:px-4 border-2 rounded-xl min-h-[44px]"
             />
-            <p className="text-xs sm:text-sm text-gray-500">
-              どのようなブランドイメージを目指しているかを記入してください
-            </p>
           </motion.div>
 
           {/* Preview Card */}
