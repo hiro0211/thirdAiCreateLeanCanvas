@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
-import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { Persona } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -19,10 +18,7 @@ export function StepPersonaSelection() {
   const {
     personas,
     selectedPersona,
-    isLoading,
-    error,
     selectPersona,
-    generateBusinessIdeas,
     goToNextStep,
     goToPreviousStep,
   } = useWorkflowStore();
@@ -31,13 +27,9 @@ export function StepPersonaSelection() {
     selectPersona(persona);
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (!selectedPersona) return;
-
-    await generateBusinessIdeas();
-    if (!error) {
-      goToNextStep();
-    }
+    goToNextStep();
   };
 
   return (
@@ -69,11 +61,6 @@ export function StepPersonaSelection() {
         </p>
       </div>
 
-      <RetryableErrorDisplay
-        error={error}
-        onRetry={generateBusinessIdeas}
-        retryLabel="ビジネスアイデアを再生成"
-      />
 
       <div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
@@ -157,25 +144,12 @@ export function StepPersonaSelection() {
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={handleNext}
-            disabled={!selectedPersona || isLoading}
+            disabled={!selectedPersona}
             size="lg"
             className="flex items-center space-x-2 px-8"
           >
-            {isLoading ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              >
-                <Users className="w-5 h-5" />
-              </motion.div>
-            ) : (
-              <ArrowRight className="w-5 h-5" />
-            )}
-            <span>
-              {isLoading
-                ? "ビジネスアイデアを生成中..."
-                : "ビジネスアイデアを生成"}
-            </span>
+            <ArrowRight className="w-5 h-5" />
+            <span>次へ</span>
           </Button>
         </motion.div>
       </div>

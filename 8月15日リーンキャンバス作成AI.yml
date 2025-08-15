@@ -3,7 +3,7 @@ app:
   icon: 🤖
   icon_background: '#FFEAD5'
   mode: advanced-chat
-  name: リーンキャンバス作成AI
+  name: 実験用リーンキャンバス作成AI
   use_icon_as_answer_icon: false
 dependencies:
 - current_identifier: null
@@ -111,30 +111,6 @@ workflow:
       zIndex: 0
     - data:
         isInLoop: false
-        sourceType: if-else
-        targetType: llm
-      id: 1752321656565-39403a98-63d5-41e1-bc84-96b9c31f88a6-1752407419530-target
-      selected: false
-      source: '1752321656565'
-      sourceHandle: 39403a98-63d5-41e1-bc84-96b9c31f88a6
-      target: '1752407419530'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: answer
-      id: 1752407419530-source-1752324992905-target
-      selected: false
-      source: '1752407419530'
-      sourceHandle: source
-      target: '1752324992905'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
         sourceType: llm
         targetType: answer
       id: 17526702857040-source-1752670700075-target
@@ -169,6 +145,97 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: if-else
+      id: 1752321656565-39403a98-63d5-41e1-bc84-96b9c31f88a6-1755132858595-target
+      source: '1752321656565'
+      sourceHandle: 39403a98-63d5-41e1-bc84-96b9c31f88a6
+      target: '1755132858595'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1755132858595-true-1752407419530-target
+      source: '1755132858595'
+      sourceHandle: 'true'
+      target: '1752407419530'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1755132858595-6aea0e65-8757-49a4-8729-1da65872f67a-17551329858681-target
+      source: '1755132858595'
+      sourceHandle: 6aea0e65-8757-49a4-8729-1da65872f67a
+      target: '17551329858681'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1755132858595-false-17551329932181-target
+      source: '1755132858595'
+      sourceHandle: 'false'
+      target: '17551329932181'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: variable-aggregator
+      id: 1752407419530-source-1755134381048-target
+      source: '1752407419530'
+      sourceHandle: source
+      target: '1755134381048'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: variable-aggregator
+        targetType: answer
+      id: 1755134381048-source-1752324992905-target
+      source: '1755134381048'
+      sourceHandle: source
+      target: '1752324992905'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: variable-aggregator
+      id: 17551329858681-source-1755134381048-target
+      source: '17551329858681'
+      sourceHandle: source
+      target: '1755134381048'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: variable-aggregator
+      id: 17551329932181-source-1755134381048-target
+      source: '17551329932181'
+      sourceHandle: source
+      target: '1755134381048'
+      targetHandle: target
+      type: custom
+      zIndex: 0
     nodes:
     - data:
         desc: ''
@@ -183,54 +250,76 @@ workflow:
           - local_file
           - remote_url
           label: task
-          max_length: 48
+          max_length: 256
           options: []
           required: true
           type: text-input
           variable: task
         - label: persona
-          max_length: 48
+          max_length: 1200
           options: []
           required: false
           type: paragraph
           variable: persona
         - label: keyword
-          max_length: 48
+          max_length: 200
           options: []
           required: false
           type: text-input
           variable: keyword
         - label: business_idea
-          max_length: 48
+          max_length: 1200
           options: []
           required: false
           type: paragraph
           variable: business_idea
         - label: product_details
-          max_length: 48
+          max_length: 1200
           options: []
           required: false
           type: paragraph
           variable: product_details
         - label: product_name
-          max_length: 48
+          max_length: 1200
           options: []
           required: false
           type: paragraph
           variable: product_name
-      height: 220
+        - label: explicit_needs
+          max_length: 2000
+          options: []
+          required: false
+          type: paragraph
+          variable: explicit_needs
+        - label: implicit_needs
+          max_length: 2000
+          options: []
+          required: false
+          type: paragraph
+          variable: implicit_needs
+        - default: realistic
+          label: creativity_level
+          max_length: 48
+          options:
+          - realistic
+          - creative
+          - visionary
+          required: false
+          type: select
+          variable: creativity_level
+      height: 298
       id: '1751895092220'
       position:
-        x: -132.66489198774178
-        y: 255.00855097523703
+        x: -129.07147357406222
+        y: 253.84253903433387
       positionAbsolute:
-        x: -132.66489198774178
-        y: 255.00855097523703
+        x: -129.07147357406222
+        y: 253.84253903433387
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 243
+      width: 244
     - data:
         answer: '{{#1752319843974.text#}}
 
@@ -238,33 +327,32 @@ workflow:
 
           '
         desc: ''
-        selected: false
+        selected: true
         title: ペルソナ案10個提案
         type: answer
         variables: []
-      height: 105
+      height: 104
       id: answer
       position:
-        x: 1067.0030031789352
-        y: 34.39514175945783
+        x: 871.342561741931
+        y: -92.36333643482877
       positionAbsolute:
-        x: 1067.0030031789352
-        y: 34.39514175945783
+        x: 871.342561741931
+        y: -92.36333643482877
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 243
+      width: 244
     - data:
         context:
           enabled: false
           variable_selector: []
         desc: ''
         model:
-          completion_params:
-            temperature: 0.7
+          completion_params: {}
           mode: chat
-          name: gpt-4.1-mini
+          name: gpt-4o-mini
           provider: langgenius/openai/openai
         prompt_template:
         - id: cab241bc-f519-4156-b146-f384e6ecb194
@@ -321,16 +409,16 @@ workflow:
       height: 90
       id: '1752319843974'
       position:
-        x: 687.9260960469815
-        y: 28.250879022372544
+        x: 569.4111533591844
+        y: 13.150359544043596
       positionAbsolute:
-        x: 687.9260960469815
-        y: 28.250879022372544
+        x: 569.4111533591844
+        y: 13.150359544043596
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 243
+      width: 244
     - data:
         cases:
         - case_id: 'true'
@@ -385,15 +473,15 @@ workflow:
       id: '1752321656565'
       position:
         x: 228.9780363486937
-        y: 245.9133506538817
+        y: 247.13051289339109
       positionAbsolute:
         x: 228.9780363486937
-        y: 245.9133506538817
+        y: 247.13051289339109
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 243
+      width: 244
     - data:
         author: Hiro
         desc: ''
@@ -419,25 +507,25 @@ workflow:
       type: custom-note
       width: 240
     - data:
-        answer: '{{#1752407419530.text#}}'
+        answer: '{{#1755134381048.output#}}'
         desc: ''
         selected: false
         title: 回答 2
         type: answer
         variables: []
-      height: 105
+      height: 104
       id: '1752324992905'
       position:
-        x: 1067.0030031789352
-        y: 177.2437436367718
+        x: 2013.387556718572
+        y: 50.948075955160704
       positionAbsolute:
-        x: 1067.0030031789352
-        y: 177.2437436367718
+        x: 2013.387556718572
+        y: 50.948075955160704
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 243
+      width: 244
     - data:
         context:
           enabled: false
@@ -452,14 +540,18 @@ workflow:
         prompt_template:
         - id: 019c8a5c-4eda-40c3-b100-310d6c08c772
           role: system
-          text: "# 命令書 あなたは新規事業立ち上げ専門のビジネスプロデューサーです。あなたはこれまで数々の新規事業を成功させました。下記の# 制約条件\
-            \ で、ユニークな[ビジネスアイデア]について #検討例 に従い検討し、# 出力文 に忠実に従って出力してください。\n\n # 制約条件\
-            \ ・以下の[ペルソナの詳細]で描写される人物が抱える悩み（顕在・潜在ニーズを含む）を解決するような、新しい[ビジネスアイデア]を10個挙げてください。\
-            \ ・似通った[ビジネスアイデア]は挙げないでください。\n\n # 入力文 ・[ペルソナ,顕在ニーズ, 潜在ニーズ]={{{#1751895092220.persona#}}}\n\
-            \n # 検討例 オズボーンの検討リストを参考に検討してください。 1. 代替: 他の何かに置き換えられないか？ 2. 組み合わせ: 他のものと組み合わせられないか？\
-            \ 3. 適応: 他の分野のアイデアを応用できないか？ 4. 修正: 何かを変更（色、形、意味など）できないか？ 5. 拡大/縮小: 大きく、または小さくできないか？\
-            \ 6. 置き換え: 用途を別のものにできないか？ 7. 再配置: 順序や配置を入れ替えられないか？ 8. 逆転: 発想を逆にできないか？\
-            \ \n\n# 出力文\n・JSON形式で出力してください。\n・JSONオブジェクトのみを出力してください。 \n・JSON以外の説明文や```jsonのようなマークダウンの囲みは絶対に含めないでください。 "
+          text: "# 命令書\nあなたは、未来のテクノロジーと社会を予測する「フューチャリスト」であり、SF的な発想で新しいビジネスを構想する「スペキュラティブ・デザイナー」です。\n\
+            下記の#ペルソナの詳細を基に、#制約条件を厳守し、常識を覆す革新的なビジネスアイデアを10個提案してください。\n\n# 制約条件\n- **最重要:**\
+            \ 10年後、20年後の未来を舞台に、ペルソナが抱える根源的な悩みを解決するアイデアを考えてください。\n- **実現可能性の無視:** 現在の技術的制約、法律、コスト、倫理観は**完全に無視**してください。SF映画に出てくるようなアイデアを歓迎します。\n\
+            - **思考の飛躍:** 「なぜそのニーズが存在するのか？」を問い直し、ニーズ自体を消滅させたり、全く新しい価値観に置き換えるような提案を重視してください。\n\
+            - 似通ったアイデアは挙げず、多様な角度から提案してください。\n\n# 入力文 \n・[ペルソナ]={{#1751895092220.persona#}}\n\
+            ・[顕在ニーズ]={{#1751895092220.explicit_needs#}}\n・[潜在ニーズ]={{#1751895092220.implicit_needs#}}\n\
+            \n# 検討例\nオズボーンの検討リストを未来的に解釈して活用してください。\n1.  **代替:** 現在の解決策を、未来のどんな魔法のような技術に置き換えられるか？\n\
+            2.  **組み合わせ:** 全く無関係な概念（例：量子力学と料理）を組み合わせられないか？\n3.  **適応:** SF作品のアイデアを、このペルソナの問題解決に応用できないか？\n\
+            4.  **修正:** 身体や環境、社会のルールそのものを変更・拡張できないか？\n5.  **拡大/縮小:** 問題をナノレベルまで分解するか、逆に宇宙規模で捉えられないか？\n\
+            6.  **置き換え:** 悩みの解決以外の、全く新しい目的を与えられないか？\n7.  **再配置:** 時間や空間の順序を入れ替えられないか？\n\
+            8.  **逆転:** 悩みを「解決」するのではなく、「祝福」や「エンターテイメント」にできないか？\n\n# 出力文\n・JSON形式で出力してください。\n\
+            ・JSONオブジェクトのみを出力してください。 \n・JSON以外の説明文や```jsonのようなマークダウンの囲みは絶対に含めないでください。"
         selected: false
         structured_output:
           schema:
@@ -487,7 +579,7 @@ workflow:
             - business_ideas
             type: object
         structured_output_enabled: true
-        title: ビジネスアイデアを10つ提案
+        title: visionaryモード ビジネスアイデアを10つ提案
         type: llm
         variables: []
         vision:
@@ -495,16 +587,16 @@ workflow:
       height: 90
       id: '1752407419530'
       position:
-        x: 707.9656357382327
-        y: 190.4035734979097
+        x: 1044.2215737867984
+        y: 70.12481903956675
       positionAbsolute:
-        x: 707.9656357382327
-        y: 190.4035734979097
+        x: 1044.2215737867984
+        y: 70.12481903956675
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 243
+      width: 244
     - data:
         context:
           enabled: false
@@ -528,7 +620,7 @@ workflow:
             \ \n・10個のネーミングを作成してください。 \n・多様な視点・切り口からネーミングを作成すること。 \n・類似サービス名との重複がないか確認すること。\
             \ \n・商標登録の可能性を考慮すること。 \n・ドメイン取得の可能性を考慮すること。   \n\n#出力形式 \n・JSON形式で出力してください。\n\
             ・JSONオブジェクトのみを出力してください。 \n・JSON以外の説明文や```jsonのようなマークダウンの囲みは絶対に含めないでください。 "
-        selected: true
+        selected: false
         structured_output:
           schema:
             properties:
@@ -576,11 +668,11 @@ workflow:
       positionAbsolute:
         x: 702.5408047425423
         y: 344.6252665398769
-      selected: true
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 243
+      width: 244
     - data:
         answer: '{{#17526702857040.text#}}'
         desc: ''
@@ -588,7 +680,7 @@ workflow:
         title: 回答 4
         type: answer
         variables: []
-      height: 105
+      height: 104
       id: '1752670700075'
       position:
         x: 1072.7659235222745
@@ -600,7 +692,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 243
+      width: 244
     - data:
         context:
           enabled: false
@@ -710,7 +802,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 243
+      width: 244
     - data:
         answer: '{{#1753019918393.text#}}'
         desc: ''
@@ -718,7 +810,7 @@ workflow:
         title: 回答 5
         type: answer
         variables: []
-      height: 105
+      height: 104
       id: '1753083797643'
       position:
         x: 1044.2215737867984
@@ -730,8 +822,228 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 243
+      width: 244
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: contains
+            id: 5d4c8d46-0236-44ab-bac0-75389e8ed4fc
+            value: visionary
+            varType: string
+            variable_selector:
+            - '1751895092220'
+            - creativity_level
+          id: 'true'
+          logical_operator: and
+        - case_id: 6aea0e65-8757-49a4-8729-1da65872f67a
+          conditions:
+          - comparison_operator: contains
+            id: 12516058-d34e-43b5-a29a-9600f984f42a
+            value: creative
+            varType: string
+            variable_selector:
+            - '1751895092220'
+            - creativity_level
+          id: 6aea0e65-8757-49a4-8729-1da65872f67a
+          logical_operator: and
+        desc: ''
+        selected: false
+        title: 思考モードを分岐
+        type: if-else
+      height: 174
+      id: '1755132858595'
+      position:
+        x: 696.5757398323816
+        y: 137.36028943003595
+      positionAbsolute:
+        x: 696.5757398323816
+        y: 137.36028943003595
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: ''
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-4.1-mini
+          provider: langgenius/openai/openai
+        prompt_template:
+        - id: 019c8a5c-4eda-40c3-b100-310d6c08c772
+          role: system
+          text: "# 命令書\nあなたは、業界の常識を打ち破ることを専門とする「イノベーション・ストラテジスト」です。\n下記の#ペルソナの詳細を基に、#制約条件を守りつつ、ユーザーを「なるほど！」と唸らせるような、少し意外性のある新しいビジネスアイデアを10個提案してください。\n\
+            \n# 制約条件\n- **最重要:** ペルソナの悩みを解決するという軸は維持しつつ、既存のサービスの一歩先を行くような、新規性の高いアイデアを重視してください。\n\
+            - **実現可能性:** 現在の技術で実現可能か、少し未来の技術であれば実現できそうな、絶妙なバランスのアイデアを提案してください。完全に非現実的なアイデアは避けてください。\n\
+            - **思考の拡張:** ペルソナの生活背景（趣味、家族構成、収入など）をヒントに、一見無関係に見える要素を組み合わせることで、新しい価値を生み出してください。\n\
+            - 似通ったアイデアは挙げず、多様な角度から提案してください。\n\n# 入力文 \n・[ペルソナ]={{#1751895092220.persona#}}\n\
+            ・[顕在ニーズ]={{#1751895092220.explicit_needs#}}\n・[潜在ニーズ]={{#1751895092220.implicit_needs#}}\n\
+            \n# 検討例\nオズボーンの検討リストを創造的に解釈して活用してください。\n1.  **代替:** 面倒な作業を、もっと楽しくて夢中になれる活動に置き換えられないか？\n\
+            2.  **組み合わせ:** ペルソナの趣味と悩みを直接的に組み合わせられないか？（例：筋トレ＋料理、ゴルフ＋ストレス軽減）\n3.  **適応:**\
+            \ 全く別の業界（例：ゲーム業界、エンタメ業界）の成功法則を、このペルソナの問題解決に応用できないか？\n4.  **修正:** 既存のサービスに少しだけ新しい要素を加えて、全く新しい体験に変えられないか？\n\
+            5.  **拡大/縮小:** サービスを個人向けではなく、家族やコミュニティ全体向けに拡大できないか？\n6.  **置き換え:** 悩みの解決プロセスそのものを、新しいコミュニケーションの機会に置き換えられないか？\n\
+            7.  **再配置:** サービス提供の場所やタイミングをずらすことで、新しい価値を生み出せないか？（例：深夜、職場）\n8.  **逆転:**\
+            \ 悩みを解決するのではなく、あえて悩みを楽しむ、もしくは「見える化」することで向き合う、という逆の発想はできないか？\n\n# 出力文\n\
+            ・JSON形式で出力してください。\n・JSONオブジェクトのみを出力してください。 \n・JSON以外の説明文や```jsonのようなマークダウンの囲みは絶対に含めないでください。"
+        selected: false
+        structured_output:
+          schema:
+            properties:
+              business_ideas:
+                description: 生成されたビジネスアイデアのリスト
+                items:
+                  properties:
+                    id:
+                      description: ビジネスアイデアの通し番号
+                      type: number
+                    idea_text:
+                      description: ユニークなビジネスアイデア（30〜50字以内）
+                      type: string
+                    osborn_hint:
+                      description: （検討例のどの要素をどのように使用したかの説明）
+                      type: string
+                  required:
+                  - id
+                  - idea_text
+                  - osborn_hint
+                  type: object
+                type: array
+            required:
+            - business_ideas
+            type: object
+        structured_output_enabled: true
+        title: 'creativeモード ビジネスアイデアを10つ提案 '
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 90
+      id: '17551329858681'
+      position:
+        x: 1044.2215737867984
+        y: 164.22119168264666
+      positionAbsolute:
+        x: 1044.2215737867984
+        y: 164.22119168264666
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: ''
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-4.1-mini
+          provider: langgenius/openai/openai
+        prompt_template:
+        - id: 019c8a5c-4eda-40c3-b100-310d6c08c772
+          role: system
+          text: "# 命令書 あなたは新規事業立ち上げ専門のビジネスプロデューサーです。あなたはこれまで数々の新規事業を成功させました。下記の# 制約条件\
+            \ で、ユニークな[ビジネスアイデア]について #検討例 に従い検討し、# 出力文 に忠実に従って出力してください。\n\n # 制約条件\
+            \ ・以下の[ペルソナの詳細]で描写される人物が抱える悩み（顕在・潜在ニーズを含む）を解決するような、新しい[ビジネスアイデア]を10個挙げてください。\
+            \ ・似通った[ビジネスアイデア]は挙げないでください。\n\n # 入力文 \n・[ペルソナ]={{#1751895092220.persona#}}\n\
+            ・[潜在ニーズ]={{#1751895092220.implicit_needs#}}\n・顕在ニーズ]={{#1751895092220.explicit_needs#}}\n\
+            \n # 検討例 オズボーンの検討リストを参考に検討してください。 1. 代替: 他の何かに置き換えられないか？ 2. 組み合わせ: 他のものと組み合わせられないか？\
+            \ 3. 適応: 他の分野のアイデアを応用できないか？ 4. 修正: 何かを変更（色、形、意味など）できないか？ 5. 拡大/縮小: 大きく、または小さくできないか？\
+            \ 6. 置き換え: 用途を別のものにできないか？ 7. 再配置: 順序や配置を入れ替えられないか？ 8. 逆転: 発想を逆にできないか？\
+            \ \n\n# 出力文\n・JSON形式で出力してください。\n・JSONオブジェクトのみを出力してください。 \n・JSON以外の説明文や```jsonのようなマークダウンの囲みは絶対に含めないでください。 "
+        selected: false
+        structured_output:
+          schema:
+            properties:
+              business_ideas:
+                description: 生成されたビジネスアイデアのリスト
+                items:
+                  properties:
+                    id:
+                      description: ビジネスアイデアの通し番号
+                      type: number
+                    idea_text:
+                      description: ユニークなビジネスアイデア（30〜50字以内）
+                      type: string
+                    osborn_hint:
+                      description: （検討例のどの要素をどのように使用したかの説明）
+                      type: string
+                  required:
+                  - id
+                  - idea_text
+                  - osborn_hint
+                  type: object
+                type: array
+            required:
+            - business_ideas
+            type: object
+        structured_output_enabled: true
+        title: 'realisticモード ビジネスアイデアを10つ提案 '
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 90
+      id: '17551329932181'
+      position:
+        x: 1044.2215737867984
+        y: 258.8331938704252
+      positionAbsolute:
+        x: 1044.2215737867984
+        y: 258.8331938704252
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        advanced_settings:
+          group_enabled: false
+          groups:
+          - groupId: e4e0c074-cc57-46b5-8a70-0a8c7ae13323
+            group_name: Group1
+            output_type: string
+            variables:
+            - - '1752407419530'
+              - text
+            - - '17551329858681'
+              - text
+            - - '17551329932181'
+              - text
+        desc: ''
+        output_type: string
+        selected: false
+        title: 変数集約器
+        type: variable-aggregator
+        variables:
+        - - '1752407419530'
+          - text
+        - - '17551329858681'
+          - text
+        - - '17551329932181'
+          - text
+      height: 162
+      id: '1755134381048'
+      position:
+        x: 1648.4460407640865
+        y: 50.948075955160704
+      positionAbsolute:
+        x: 1648.4460407640865
+        y: 50.948075955160704
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
     viewport:
-      x: 508.4682672085912
-      y: 216.7848577592357
-      zoom: 1.1360292647866845
+      x: 166.84782127687185
+      y: 282.4336737243983
+      zoom: 0.49257572529972865

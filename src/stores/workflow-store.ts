@@ -7,6 +7,7 @@ import {
   ProductDetails,
   LeanCanvasData,
   WorkflowStep,
+  CreativityLevel,
   DifyPersonaResponse,
   DifyBusinessIdeaResponse,
   DifyProductNameResponse,
@@ -46,6 +47,7 @@ interface WorkflowState {
 
   // Step data
   keyword: string;
+  creativityLevel: CreativityLevel;
   personas: Persona[];
   selectedPersona: Persona | null;
   businessIdeas: BusinessIdea[];
@@ -57,6 +59,7 @@ interface WorkflowState {
 
   // Actions
   setKeyword: (keyword: string) => void;
+  setCreativityLevel: (level: CreativityLevel) => void;
   generatePersonas: () => Promise<void>;
   selectPersona: (persona: Persona) => void;
   generateBusinessIdeas: () => Promise<void>;
@@ -81,6 +84,7 @@ const INITIAL_PRODUCT_DETAILS: ProductDetails = {
 const stepOrder: WorkflowStep[] = [
   "keyword",
   "persona-selection",
+  "creativity-level-selection",
   "business-idea-selection",
   "details-input",
   "product-name-selection",
@@ -94,6 +98,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   error: null,
 
   keyword: "",
+  creativityLevel: "realistic",
   personas: [],
   selectedPersona: null,
   businessIdeas: [],
@@ -106,6 +111,10 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   // Actions
   setKeyword: (keyword) => {
     set({ keyword, error: null });
+  },
+
+  setCreativityLevel: (level) => {
+    set({ creativityLevel: level, error: null });
   },
 
   generatePersonas: async () => {
@@ -148,7 +157,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   },
 
   generateBusinessIdeas: async () => {
-    const { selectedPersona } = get();
+    const { selectedPersona, creativityLevel } = get();
     if (!selectedPersona) {
       set({ error: ERROR_MESSAGES.PERSONA_REQUIRED });
       return;
@@ -160,6 +169,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       const result = await callDifyApi<DifyBusinessIdeaResponse>({
         task: "businessidea",
         persona: selectedPersona,
+        creativity_level: creativityLevel,
       });
 
       set({
@@ -287,6 +297,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       isLoading: false,
       error: null,
       keyword: "",
+      creativityLevel: "realistic",
       personas: [],
       selectedPersona: null,
       businessIdeas: [],

@@ -88,7 +88,14 @@ export class BusinessIdeaTaskProcessor extends TaskProcessor<
   DifyBusinessIdeaResponse
 > {
   validateRequest(body: any): body is DifyBusinessIdeaRequest {
-    return body && body.persona && typeof body.persona === "object";
+    return (
+      body &&
+      body.persona &&
+      typeof body.persona === "object" &&
+      body.creativity_level &&
+      typeof body.creativity_level === "string" &&
+      ['realistic', 'creative', 'visionary'].includes(body.creativity_level)
+    );
   }
 
   buildDifyRequest(request: DifyBusinessIdeaRequest): DifyRequest {
@@ -97,8 +104,9 @@ export class BusinessIdeaTaskProcessor extends TaskProcessor<
         persona: request.persona.description,
         explicit_needs: request.persona.explicit_needs,
         implicit_needs: request.persona.implicit_needs,
+        creativity_level: request.creativity_level,
       },
-      query: `次のペルソナに基づいて10個のビジネスアイデアを生成してください。JSON形式で {business_ideas: [...]} として返してください。`,
+      query: `次のペルソナに基づいて、${request.creativity_level}思考モードで10個のビジネスアイデアを生成してください。JSON形式で {business_ideas: [...]} として返してください。`,
       task: "businessidea",
     };
   }
@@ -108,7 +116,7 @@ export class BusinessIdeaTaskProcessor extends TaskProcessor<
   }
 
   getValidationErrorMessage(): string {
-    return "ペルソナが必要です";
+    return "ペルソナと創造性レベルが必要です";
   }
 
   formatResponse(normalizedData: any): DifyBusinessIdeaResponse {

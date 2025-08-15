@@ -78,6 +78,7 @@ export const WORKFLOW_STEPS = {
   STEP_LABELS: {
     KEYWORD: "キーワード入力",
     PERSONA_SELECTION: "ペルソナ選択",
+    CREATIVITY_LEVEL_SELECTION: "思考モード選択",
     BUSINESS_IDEA_SELECTION: "ビジネスアイデア選択",
     DETAILS_INPUT: "詳細入力",
     PRODUCT_NAME_SELECTION: "プロダクト名選択",
@@ -87,6 +88,7 @@ export const WORKFLOW_STEPS = {
   STEP_DESCRIPTIONS: {
     KEYWORD: "ビジネスアイデアに関するキーワードを入力してください",
     PERSONA_SELECTION: "最も共感できるターゲットユーザーを1つ選んでください",
+    CREATIVITY_LEVEL_SELECTION: "ビジネスアイデアの創造性レベルを選択してください",
     BUSINESS_IDEA_SELECTION: "最も魅力的なビジネスアイデアを選択してください",
     DETAILS_INPUT: "商品・サービスの詳細情報を入力してください",
     PRODUCT_NAME_SELECTION: "最適なプロダクト名を選択してください",

@@ -1,39 +1,42 @@
-import { Persona, BusinessIdea, ProductName, LeanCanvasData } from '../types';
+import { Persona, BusinessIdea, ProductName, LeanCanvasData } from "../types";
 
 export abstract class DataNormalizer<TInput, TOutput> {
   abstract normalize(data: any): TOutput;
   abstract validate(data: TOutput): boolean;
-  
+
   protected extractArray(data: any, possibleKeys: string[]): any[] {
     for (const key of possibleKeys) {
       if (data[key] && Array.isArray(data[key])) {
         return data[key];
       }
     }
-    return Array.isArray(data) ? data : (data.data || data.output || []);
+    return Array.isArray(data) ? data : data.data || data.output || [];
   }
 }
 
 export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
-  private extractPersonaNeeds(persona: any, needType: 'explicit' | 'implicit'): string {
+  private extractPersonaNeeds(
+    persona: any,
+    needType: "explicit" | "implicit"
+  ): string {
     const possibleKeys = [
       `${needType}`,
       `${needType}_needs`,
-      `needs.${needType}`
+      `needs.${needType}`,
     ];
-    
+
     // Check persona.needs first
     if (persona.needs?.[needType]) {
       return persona.needs[needType];
     }
-    
+
     // Check direct properties
     for (const key of possibleKeys) {
       if (persona[key]) {
         return persona[key];
       }
     }
-    
+
     return "";
   }
 
@@ -42,7 +45,7 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
 
     if (data.personas) {
       personas = data.personas;
-    } else if (data.text && typeof data.text === 'string') {
+    } else if (data.text && typeof data.text === "string") {
       // Text response is treated as error
       throw new Error(
         `Difyからテキストレスポンスが返されました。JSON形式での応答が必要です: ${data.text}`
@@ -57,14 +60,31 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
 
     // Normalize persona data
     if (Array.isArray(personas)) {
-      return personas.map((persona: any, index: number) => ({
-        id: persona.id || index + 1,
-        description: persona.description || persona.text || String(persona),
-        needs: {
-          explicit: this.extractPersonaNeeds(persona, 'explicit'),
-          implicit: this.extractPersonaNeeds(persona, 'implicit'),
-        },
-      }));
+      return personas.map((persona: any, index: number) => {
+        // より柔軟なdescription抽出
+        let description = "";
+        if (typeof persona === "string") {
+          description = persona;
+        } else if (typeof persona === "object" && persona !== null) {
+          description =
+            persona.description ||
+            persona.text ||
+            persona.content ||
+            persona.persona ||
+            JSON.stringify(persona);
+        } else {
+          description = String(persona);
+        }
+
+        return {
+          id: persona.id || index + 1,
+          description,
+          needs: {
+            explicit: this.extractPersonaNeeds(persona, "explicit"),
+            implicit: this.extractPersonaNeeds(persona, "implicit"),
+          },
+        };
+      });
     }
 
     return [];
@@ -75,9 +95,12 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
   }
 }
 
-export class BusinessIdeaNormalizer extends DataNormalizer<any, BusinessIdea[]> {
+export class BusinessIdeaNormalizer extends DataNormalizer<
+  any,
+  BusinessIdea[]
+> {
   private extractIdeaText(idea: any): string {
-    const possibleKeys = ['idea_text', 'idea', 'text'];
+    const possibleKeys = ["idea_text", "idea", "text"];
     for (const key of possibleKeys) {
       if (idea[key]) {
         return idea[key];
@@ -87,7 +110,7 @@ export class BusinessIdeaNormalizer extends DataNormalizer<any, BusinessIdea[]> 
   }
 
   private extractOsbornHint(idea: any): string {
-    const possibleKeys = ['osborn_hint', 'hint', 'reasoning'];
+    const possibleKeys = ["osborn_hint", "hint", "reasoning"];
     for (const key of possibleKeys) {
       if (idea[key]) {
         return idea[key];
@@ -97,7 +120,7 @@ export class BusinessIdeaNormalizer extends DataNormalizer<any, BusinessIdea[]> 
   }
 
   normalize(data: any): BusinessIdea[] {
-    const businessIdeas = this.extractArray(data, ['business_ideas', 'ideas']);
+    const businessIdeas = this.extractArray(data, ["business_ideas", "ideas"]);
 
     if (Array.isArray(businessIdeas)) {
       return businessIdeas.map((idea: any, index: number) => ({
@@ -117,7 +140,7 @@ export class BusinessIdeaNormalizer extends DataNormalizer<any, BusinessIdea[]> 
 
 export class ProductNameNormalizer extends DataNormalizer<any, ProductName[]> {
   private extractProductName(nameData: any): string {
-    const possibleKeys = ['name', 'product_name'];
+    const possibleKeys = ["name", "product_name"];
     for (const key of possibleKeys) {
       if (nameData[key]) {
         return nameData[key];
@@ -126,11 +149,14 @@ export class ProductNameNormalizer extends DataNormalizer<any, ProductName[]> {
     return String(nameData);
   }
 
-  private extractProductField(nameData: any, fieldType: 'reason' | 'pros' | 'cons'): string {
+  private extractProductField(
+    nameData: any,
+    fieldType: "reason" | "pros" | "cons"
+  ): string {
     const fieldMappings = {
-      reason: ['reason', 'reasoning', 'explanation'],
-      pros: ['pros', 'advantages', 'benefits'],
-      cons: ['cons', 'disadvantages', 'drawbacks']
+      reason: ["reason", "reasoning", "explanation"],
+      pros: ["pros", "advantages", "benefits"],
+      cons: ["cons", "disadvantages", "drawbacks"],
     };
 
     const possibleKeys = fieldMappings[fieldType];
@@ -143,15 +169,15 @@ export class ProductNameNormalizer extends DataNormalizer<any, ProductName[]> {
   }
 
   normalize(data: any): ProductName[] {
-    const productNames = this.extractArray(data, ['product_names', 'names']);
+    const productNames = this.extractArray(data, ["product_names", "names"]);
 
     if (Array.isArray(productNames)) {
       return productNames.map((name: any, index: number) => ({
         id: name.id || index + 1,
         name: this.extractProductName(name),
-        reason: this.extractProductField(name, 'reason'),
-        pros: this.extractProductField(name, 'pros'),
-        cons: this.extractProductField(name, 'cons'),
+        reason: this.extractProductField(name, "reason"),
+        pros: this.extractProductField(name, "pros"),
+        cons: this.extractProductField(name, "cons"),
       }));
     }
 
@@ -175,34 +201,38 @@ export class CanvasNormalizer extends DataNormalizer<any, LeanCanvasData> {
 
   normalize(data: any): LeanCanvasData {
     return {
-      problem: this.extractCanvasField(data, ['problem', 'problems']),
-      solution: this.extractCanvasField(data, ['solution', 'solutions']),
-      keyMetrics: this.extractCanvasField(data, ['key_metrics', 'keyMetrics', 'metrics']),
+      problem: this.extractCanvasField(data, ["problem", "problems"]),
+      solution: this.extractCanvasField(data, ["solution", "solutions"]),
+      keyMetrics: this.extractCanvasField(data, [
+        "key_metrics",
+        "keyMetrics",
+        "metrics",
+      ]),
       uniqueValueProposition: this.extractCanvasField(data, [
-        'unique_value_proposition',
-        'uniqueValueProposition',
-        'value_proposition'
+        "unique_value_proposition",
+        "uniqueValueProposition",
+        "value_proposition",
       ]),
       unfairAdvantage: this.extractCanvasField(data, [
-        'unfair_advantage',
-        'unfairAdvantage',
-        'advantage'
+        "unfair_advantage",
+        "unfairAdvantage",
+        "advantage",
       ]),
-      channels: this.extractCanvasField(data, ['channels']),
+      channels: this.extractCanvasField(data, ["channels"]),
       customerSegments: this.extractCanvasField(data, [
-        'customer_segments',
-        'customerSegments',
-        'segments'
+        "customer_segments",
+        "customerSegments",
+        "segments",
       ]),
       costStructure: this.extractCanvasField(data, [
-        'cost_structure',
-        'costStructure',
-        'costs'
+        "cost_structure",
+        "costStructure",
+        "costs",
       ]),
       revenueStreams: this.extractCanvasField(data, [
-        'revenue_streams',
-        'revenueStreams',
-        'revenue'
+        "revenue_streams",
+        "revenueStreams",
+        "revenue",
       ]),
     };
   }
@@ -218,15 +248,15 @@ export class CanvasNormalizer extends DataNormalizer<any, LeanCanvasData> {
 export class NormalizerFactory {
   static create(task: string): DataNormalizer<any, any> {
     switch (task) {
-      case 'persona': 
+      case "persona":
         return new PersonaNormalizer();
-      case 'businessidea': 
+      case "businessidea":
         return new BusinessIdeaNormalizer();
-      case 'productname': 
+      case "productname":
         return new ProductNameNormalizer();
-      case 'canvas': 
+      case "canvas":
         return new CanvasNormalizer();
-      default: 
+      default:
         throw new Error(`Unknown task: ${task}`);
     }
   }
