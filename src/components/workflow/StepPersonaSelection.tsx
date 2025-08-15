@@ -111,7 +111,7 @@ export function StepPersonaSelection() {
                       明確なニーズ
                     </h5>
                     <p className="text-xs text-gray-600 bg-blue-50 p-2 rounded-md">
-                      {persona.needs.explicit}
+                      {persona.explicit_needs}
                     </p>
                   </div>
 
@@ -120,7 +120,7 @@ export function StepPersonaSelection() {
                       潜在的ニーズ
                     </h5>
                     <p className="text-xs text-gray-600 bg-purple-50 p-2 rounded-md">
-                      {persona.needs.implicit}
+                      {persona.implicit_needs}
                     </p>
                   </div>
                 </div>
