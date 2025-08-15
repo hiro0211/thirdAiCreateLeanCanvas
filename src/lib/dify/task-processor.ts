@@ -94,7 +94,9 @@ export class BusinessIdeaTaskProcessor extends TaskProcessor<
   buildDifyRequest(request: DifyBusinessIdeaRequest): DifyRequest {
     return {
       inputs: {
-        persona: JSON.stringify(request.persona),
+        persona: request.persona.description,
+        explicit_needs: request.persona.explicit_needs,
+        implicit_needs: request.persona.implicit_needs,
       },
       query: `次のペルソナに基づいて10個のビジネスアイデアを生成してください。JSON形式で {business_ideas: [...]} として返してください。`,
       task: "businessidea",

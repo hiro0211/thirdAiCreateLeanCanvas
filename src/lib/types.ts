@@ -2,10 +2,8 @@
 export interface Persona {
   id: number;
   description: string;
-  needs: {
-    explicit: string;
-    implicit: string;
-  };
+  explicit_needs: string;
+  implicit_needs: string;
 }
 
 export interface BusinessIdea {
