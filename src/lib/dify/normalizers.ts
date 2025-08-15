@@ -79,10 +79,8 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
         return {
           id: persona.id || index + 1,
           description,
-          needs: {
-            explicit: this.extractPersonaNeeds(persona, "explicit"),
-            implicit: this.extractPersonaNeeds(persona, "implicit"),
-          },
+          explicit_needs: this.extractPersonaNeeds(persona, "explicit"),
+          implicit_needs: this.extractPersonaNeeds(persona, "implicit"),
         };
       });
     }

@@ -1,5 +1,5 @@
 // 思考モードの型定義（Difyの変数名に対応）
-export type CreativityLevel = 'realistic' | 'creative' | 'visionary';
+export type CreativityLevel = "realistic" | "creative" | "visionary";
 
 // Difyの各タスクからのレスポンスJSONの型
 export interface Persona {
@@ -50,25 +50,25 @@ export interface DifyProductNameResponse {
 
 // Dify APIリクエストペイロードの型
 export interface DifyPersonaRequest {
-  task: 'persona';
+  task: "persona";
   keyword: string;
 }
 
 export interface DifyBusinessIdeaRequest {
-  task: 'businessidea';
+  task: "businessidea";
   persona: Persona;
   creativity_level: CreativityLevel;
 }
 
 export interface DifyProductNameRequest {
-  task: 'productname';
+  task: "productname";
   persona: Persona;
   business_idea: BusinessIdea;
   product_details: ProductDetails;
 }
 
 export interface DifyCanvasRequest {
-  task: 'canvas';
+  task: "canvas";
   persona: Persona;
   business_idea: BusinessIdea;
   product_name: ProductName;
@@ -82,14 +82,14 @@ export interface ProductDetails {
 }
 
 // ワークフローのステップ定義
-export type WorkflowStep = 
-  | 'keyword'
-  | 'persona-selection'
-  | 'creativity-level-selection'
-  | 'business-idea-selection'
-  | 'details-input'
-  | 'product-name-selection'
-  | 'canvas-display';
+export type WorkflowStep =
+  | "keyword"
+  | "persona-selection"
+  | "creativity-level-selection"
+  | "business-idea-selection"
+  | "details-input"
+  | "product-name-selection"
+  | "canvas-display";
 
 // API エラーレスポンスの型
 export interface ApiError {
@@ -111,7 +111,7 @@ export interface TutorialStep {
   description: string;
   target?: string; // CSS セレクタ
   content: string;
-  position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  position?: "top" | "bottom" | "left" | "right" | "center";
   showSkip?: boolean;
   isLast?: boolean;
 }
