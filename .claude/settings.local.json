@@ -15,8 +15,10 @@
       "Bash(npm audit:*)",
       "Bash(npm run type-check:*)",
       "Bash(npm run dev:*)",
-      "Bash(del package-lock.json)"
+      "Bash(del package-lock.json)",
+      "Bash(npm run lint)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

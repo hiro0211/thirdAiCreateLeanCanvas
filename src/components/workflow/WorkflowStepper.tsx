@@ -15,6 +15,7 @@ interface WorkflowStepperProps {
 const steps = [
   { key: "keyword", label: WORKFLOW_STEPS.STEP_LABELS.KEYWORD },
   { key: "persona-selection", label: WORKFLOW_STEPS.STEP_LABELS.PERSONA_SELECTION },
+  { key: "creativity-level-selection", label: WORKFLOW_STEPS.STEP_LABELS.CREATIVITY_LEVEL_SELECTION },
   { key: "business-idea-selection", label: WORKFLOW_STEPS.STEP_LABELS.BUSINESS_IDEA_SELECTION },
   { key: "details-input", label: WORKFLOW_STEPS.STEP_LABELS.DETAILS_INPUT },
   { key: "product-name-selection", label: WORKFLOW_STEPS.STEP_LABELS.PRODUCT_NAME_SELECTION },

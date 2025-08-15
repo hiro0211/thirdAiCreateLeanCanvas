@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { WorkflowStepper } from "@/components/workflow/WorkflowStepper";
 import { StepKeywordInput } from "@/components/workflow/StepKeywordInput";
 import { StepPersonaSelection } from "@/components/workflow/StepPersonaSelection";
+import { StepCreativityLevelSelection } from "@/components/workflow/StepCreativityLevelSelection";
 import { StepBusinessIdeaSelection } from "@/components/workflow/StepBusinessIdeaSelection";
 import { StepDetailsInput } from "@/components/workflow/StepDetailsInput";
 import { StepProductNameSelection } from "@/components/workflow/StepProductNameSelection";
@@ -16,6 +17,7 @@ import { useWorkflowStore } from "@/stores/workflow-store";
 const stepComponents = {
   keyword: StepKeywordInput,
   "persona-selection": StepPersonaSelection,
+  "creativity-level-selection": StepCreativityLevelSelection,
   "business-idea-selection": StepBusinessIdeaSelection,
   "details-input": StepDetailsInput,
   "product-name-selection": StepProductNameSelection,

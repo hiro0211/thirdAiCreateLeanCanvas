@@ -1,3 +1,6 @@
+// 思考モードの型定義（Difyの変数名に対応）
+export type CreativityLevel = 'realistic' | 'creative' | 'visionary';
+
 // Difyの各タスクからのレスポンスJSONの型
 export interface Persona {
   id: number;
@@ -56,6 +59,7 @@ export interface DifyPersonaRequest {
 export interface DifyBusinessIdeaRequest {
   task: 'businessidea';
   persona: Persona;
+  creativity_level: CreativityLevel;
 }
 
 export interface DifyProductNameRequest {
@@ -83,6 +87,7 @@ export interface ProductDetails {
 export type WorkflowStep = 
   | 'keyword'
   | 'persona-selection'
+  | 'creativity-level-selection'
   | 'business-idea-selection'
   | 'details-input'
   | 'product-name-selection'
