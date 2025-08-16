@@ -211,12 +211,16 @@ export function StepLeanCanvasDisplay() {
 
             if (blocks.length === 1) {
               // 単一ブロック列
-              return renderCanvasBlock(blocks[0]);
+              return (
+                <div key={`top-col-${column.col}`}>
+                  {renderCanvasBlock(blocks[0])}
+                </div>
+              );
             } else if (blocks.length === 2) {
               // 分割ブロック列
               return (
                 <div
-                  key={`col-${column.col}`}
+                  key={`top-col-${column.col}`}
                   className={GRID_CLASSES.SPLIT_COLUMN}
                 >
                   {renderCanvasBlock(blocks[0], true, "flex-1")}
@@ -236,7 +240,11 @@ export function StepLeanCanvasDisplay() {
         >
           {CANVAS_DISPLAY_ORDER.BOTTOM_SECTION.map((column) => {
             const blocks = getBlocksForColumn("bottom", column.col);
-            return blocks.map((blockNumber) => renderCanvasBlock(blockNumber));
+            return blocks.map((blockNumber) => (
+              <div key={`bottom-block-${blockNumber}`}>
+                {renderCanvasBlock(blockNumber)}
+              </div>
+            ));
           })}
         </div>
       </div>

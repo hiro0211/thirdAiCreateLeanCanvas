@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { QueryProvider } from "@/providers/QueryProvider";
 import "./globals.css";
@@ -8,9 +8,16 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "AI Lean Canvas Creator",
   description: "DifyのAIワークフローと連携するリーンキャンバス作成アプリ",
-  viewport:
-    "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no",
 };
+
+export function generateViewport(): Viewport {
+  return {
+    width: "device-width",
+    initialScale: 1.0,
+    maximumScale: 1.0,
+    userScalable: false,
+  };
+}
 
 export default function RootLayout({
   children,
@@ -20,9 +27,7 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <body className={inter.className}>
-        <QueryProvider>
-          {children}
-        </QueryProvider>
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );

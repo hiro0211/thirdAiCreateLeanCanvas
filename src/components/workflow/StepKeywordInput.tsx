@@ -24,13 +24,14 @@ export function StepKeywordInput() {
   const [localKeyword, setLocalKeyword] = useState(keyword);
   const generatePersonasMutation = useGeneratePersonas();
 
-  // コンポーネント初期化時にエラー状態をクリア
+  // コンポーネント初期化時にエラー状態をクリア（マウント時のみ実行）
   useEffect(() => {
     setError(null); // ワークフローストアのエラーをクリア
     if (generatePersonasMutation.error) {
       generatePersonasMutation.reset(); // ミューテーションのエラーをクリア
     }
-  }, [setError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 初回マウント時のみ実行
 
   const handleSubmit = async () => {
     if (!localKeyword.trim()) return;
@@ -111,7 +112,8 @@ export function StepKeywordInput() {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2"
                 >
                   <Sparkles className="w-5 h-5 text-primary" />
-                  image.png                </motion.div>
+                  image.png{" "}
+                </motion.div>
               )}
             </div>
           </div>
