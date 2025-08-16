@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,14 @@ export function StepKeywordInput() {
 
   const [localKeyword, setLocalKeyword] = useState(keyword);
   const generatePersonasMutation = useGeneratePersonas();
+
+  // コンポーネント初期化時にエラー状態をクリア
+  useEffect(() => {
+    setError(null); // ワークフローストアのエラーをクリア
+    if (generatePersonasMutation.error) {
+      generatePersonasMutation.reset(); // ミューテーションのエラーをクリア
+    }
+  }, [setError]);
 
   const handleSubmit = async () => {
     if (!localKeyword.trim()) return;
@@ -113,9 +121,11 @@ export function StepKeywordInput() {
               error ||
               (generatePersonasMutation.error instanceof Error
                 ? generatePersonasMutation.error.message
-                : "ペルソナ生成中に不明なエラーが発生しました")
+                : generatePersonasMutation.error
+                  ? "ペルソナ生成中に不明なエラーが発生しました"
+                  : null)
             }
-            onRetry={() => generatePersonasMutation.mutate(localKeyword.trim())}
+            onRetry={handleSubmit}
             retryLabel="ペルソナを再生成"
           />
 
