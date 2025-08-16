@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Users, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,89 @@ import { useWorkflowStore } from "@/stores/workflow-store";
 import { Persona } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+// PersonaCardをメモ化して再レンダリングを最適化
+const PersonaCard = memo(
+  ({
+    persona,
+    index,
+    isSelected,
+    onSelect,
+  }: {
+    persona: Persona;
+    index: number;
+    isSelected: boolean;
+    onSelect: (persona: Persona) => void;
+  }) => {
+    const handleClick = useCallback(() => {
+      onSelect(persona);
+    }, [persona, onSelect]);
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: index * 0.1 }}
+        className="transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98]"
+      >
+        <Card
+          className={cn(
+            "cursor-pointer transition-all duration-300 hover:shadow-xl border-2",
+            isSelected
+              ? "border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-accent/5"
+              : "border-gray-200 hover:border-primary/50"
+          )}
+          onClick={handleClick}
+        >
+          <CardHeader className="relative">
+            {isSelected && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute top-4 right-4"
+              >
+                <CheckCircle className="w-6 h-6 text-primary" />
+              </motion.div>
+            )}
+            <CardTitle className="text-lg font-semibold text-gray-800">
+              ペルソナ {persona.id}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h4 className="font-medium text-gray-700 mb-2">概要</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {persona.description}
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <h5 className="font-medium text-gray-700 text-sm mb-1">
+                  明確なニーズ
+                </h5>
+                <p className="text-xs text-gray-600 bg-blue-50 p-2 rounded-md">
+                  {persona.explicit_needs}
+                </p>
+              </div>
+
+              <div>
+                <h5 className="font-medium text-gray-700 text-sm mb-1">
+                  潜在的ニーズ
+                </h5>
+                <p className="text-xs text-gray-600 bg-purple-50 p-2 rounded-md">
+                  {persona.implicit_needs}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+);
+
+PersonaCard.displayName = "PersonaCard";
+
 export function StepPersonaSelection() {
   const {
     personas,
@@ -23,14 +107,17 @@ export function StepPersonaSelection() {
     goToPreviousStep,
   } = useWorkflowStore();
 
-  const handlePersonaSelect = (persona: Persona) => {
-    selectPersona(persona);
-  };
+  const handlePersonaSelect = useCallback(
+    (persona: Persona) => {
+      selectPersona(persona);
+    },
+    [selectPersona]
+  );
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (!selectedPersona) return;
     goToNextStep();
-  };
+  }, [selectedPersona, goToNextStep]);
 
   return (
     <motion.div
@@ -61,72 +148,18 @@ export function StepPersonaSelection() {
         </p>
       </div>
 
-
       <div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
         data-tutorial="persona-cards"
       >
         {personas.map((persona, index) => (
-          <motion.div
+          <PersonaCard
             key={persona.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-            className="transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Card
-              className={cn(
-                "cursor-pointer transition-all duration-300 hover:shadow-xl border-2",
-                selectedPersona?.id === persona.id
-                  ? "border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-accent/5"
-                  : "border-gray-200 hover:border-primary/50"
-              )}
-              onClick={() => handlePersonaSelect(persona)}
-            >
-              <CardHeader className="relative">
-                {selectedPersona?.id === persona.id && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute top-4 right-4"
-                  >
-                    <CheckCircle className="w-6 h-6 text-primary" />
-                  </motion.div>
-                )}
-                <CardTitle className="text-lg font-semibold text-gray-800">
-                  ペルソナ {persona.id}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">概要</h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {persona.description}
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <h5 className="font-medium text-gray-700 text-sm mb-1">
-                      明確なニーズ
-                    </h5>
-                    <p className="text-xs text-gray-600 bg-blue-50 p-2 rounded-md">
-                      {persona.explicit_needs}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h5 className="font-medium text-gray-700 text-sm mb-1">
-                      潜在的ニーズ
-                    </h5>
-                    <p className="text-xs text-gray-600 bg-purple-50 p-2 rounded-md">
-                      {persona.implicit_needs}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+            persona={persona}
+            index={index}
+            isSelected={selectedPersona?.id === persona.id}
+            onSelect={handlePersonaSelect}
+          />
         ))}
       </div>
 

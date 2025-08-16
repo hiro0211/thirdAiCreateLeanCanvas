@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
+import { useGenerateBusinessIdeas } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { CreativityLevel } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -48,23 +49,41 @@ const creativityOptions: Array<{
 export function StepCreativityLevelSelection() {
   const {
     creativityLevel,
-    isLoading,
     error,
+    selectedPersona,
     setCreativityLevel,
-    generateBusinessIdeas,
+    setBusinessIdeas,
+    setError,
     goToNextStep,
     goToPreviousStep,
   } = useWorkflowStore();
+
+  const generateBusinessIdeasMutation = useGenerateBusinessIdeas();
 
   const handleLevelSelect = (level: CreativityLevel) => {
     setCreativityLevel(level);
   };
 
   const handleNext = async () => {
-    await generateBusinessIdeas();
-    const store = useWorkflowStore.getState();
-    if (!store.error) {
+    if (!selectedPersona) {
+      setError("ペルソナが選択されていません");
+      return;
+    }
+
+    try {
+      setError(null);
+      const businessIdeas = await generateBusinessIdeasMutation.mutateAsync({
+        persona: selectedPersona,
+        creativityLevel,
+      });
+      setBusinessIdeas(businessIdeas);
       goToNextStep();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "ビジネスアイデアの生成に失敗しました"
+      );
     }
   };
 
@@ -148,7 +167,7 @@ export function StepCreativityLevelSelection() {
 
       <RetryableErrorDisplay
         error={error}
-        onRetry={generateBusinessIdeas}
+        onRetry={handleNext}
         retryLabel="ビジネスアイデアを再生成"
       />
 
@@ -166,11 +185,13 @@ export function StepCreativityLevelSelection() {
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={handleNext}
-            disabled={!creativityLevel || isLoading}
+            disabled={
+              !creativityLevel || generateBusinessIdeasMutation.isLoading
+            }
             size="lg"
             className="flex items-center space-x-2 px-8"
           >
-            {isLoading ? (
+            {generateBusinessIdeasMutation.isLoading ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -181,7 +202,7 @@ export function StepCreativityLevelSelection() {
               <ArrowRight className="w-5 h-5" />
             )}
             <span>
-              {isLoading
+              {generateBusinessIdeasMutation.isLoading
                 ? "ビジネスアイデアを生成中..."
                 : "ビジネスアイデアを生成"}
             </span>

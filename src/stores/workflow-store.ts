@@ -8,10 +8,6 @@ import {
   LeanCanvasData,
   WorkflowStep,
   CreativityLevel,
-  DifyPersonaResponse,
-  DifyBusinessIdeaResponse,
-  DifyProductNameResponse,
-  ApiResponse,
   TutorialState,
   TutorialStep,
 } from "@/lib/types";
@@ -20,29 +16,10 @@ import {
   WORKFLOW_STEPS,
   TUTORIAL_MESSAGES,
 } from "@/lib/constants/messages";
-// Helper function to call the Dify API
-async function callDifyApi<T>(request: any): Promise<ApiResponse<T>> {
-  const response = await fetch('/api/dify', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  });
-
-  const result: ApiResponse<T> = await response.json();
-  
-  if (!result.success) {
-    throw new Error(result.error?.message || 'API call failed');
-  }
-  
-  return result;
-}
 
 interface WorkflowState {
   // Current state
   currentStep: WorkflowStep;
-  isLoading: boolean;
   error: string | null;
 
   // Step data
@@ -60,19 +37,18 @@ interface WorkflowState {
   // Actions
   setKeyword: (keyword: string) => void;
   setCreativityLevel: (level: CreativityLevel) => void;
-  generatePersonas: () => Promise<void>;
+  setPersonas: (personas: Persona[]) => void;
   selectPersona: (persona: Persona) => void;
-  generateBusinessIdeas: () => Promise<void>;
+  setBusinessIdeas: (ideas: BusinessIdea[]) => void;
   selectBusinessIdea: (idea: BusinessIdea) => void;
   setProductDetails: (details: ProductDetails) => void;
-  generateProductNames: () => Promise<void>;
+  setProductNames: (names: ProductName[]) => void;
   selectProductName: (name: ProductName) => void;
-  generateLeanCanvas: () => Promise<void>;
+  setLeanCanvasData: (data: LeanCanvasData | null) => void;
   goToNextStep: () => void;
   goToPreviousStep: () => void;
   resetWorkflow: () => void;
   setError: (error: string | null) => void;
-  setLoading: (loading: boolean) => void;
 }
 
 const INITIAL_PRODUCT_DETAILS: ProductDetails = {
@@ -94,7 +70,6 @@ const stepOrder: WorkflowStep[] = [
 export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   // Initial state
   currentStep: "keyword",
-  isLoading: false,
   error: null,
 
   keyword: "",
@@ -117,74 +92,16 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set({ creativityLevel: level, error: null });
   },
 
-  generatePersonas: async () => {
-    const { keyword } = get();
-    if (!keyword.trim()) {
-      set({ error: ERROR_MESSAGES.KEYWORD_REQUIRED });
-      return;
-    }
-
-    set({ isLoading: true, error: null });
-
-    try {
-      const result = await callDifyApi<DifyPersonaResponse>({
-        task: "persona",
-        keyword: keyword.trim(),
-      });
-
-      const personas = result.data?.personas || [];
-      if (personas.length === 0) {
-        throw new Error(ERROR_MESSAGES.NO_PERSONAS_GENERATED);
-      }
-
-      set({
-        personas,
-        isLoading: false,
-      });
-    } catch (error) {
-      set({
-        error:
-          error instanceof Error
-            ? error.message
-            : ERROR_MESSAGES.PERSONA_GENERATION_FAILED,
-        isLoading: false,
-      });
-    }
+  setPersonas: (personas) => {
+    set({ personas, error: null });
   },
 
   selectPersona: (persona) => {
     set({ selectedPersona: persona, error: null });
   },
 
-  generateBusinessIdeas: async () => {
-    const { selectedPersona, creativityLevel } = get();
-    if (!selectedPersona) {
-      set({ error: ERROR_MESSAGES.PERSONA_REQUIRED });
-      return;
-    }
-
-    set({ isLoading: true, error: null });
-
-    try {
-      const result = await callDifyApi<DifyBusinessIdeaResponse>({
-        task: "businessidea",
-        persona: selectedPersona,
-        creativity_level: creativityLevel,
-      });
-
-      set({
-        businessIdeas: result.data?.business_ideas || [],
-        isLoading: false,
-      });
-    } catch (error) {
-      set({
-        error:
-          error instanceof Error
-            ? error.message
-            : ERROR_MESSAGES.BUSINESS_IDEA_GENERATION_FAILED,
-        isLoading: false,
-      });
-    }
+  setBusinessIdeas: (ideas) => {
+    set({ businessIdeas: ideas, error: null });
   },
 
   selectBusinessIdea: (idea) => {
@@ -195,84 +112,16 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set({ productDetails: details, error: null });
   },
 
-  generateProductNames: async () => {
-    const { selectedPersona, selectedBusinessIdea, productDetails } = get();
-
-    if (!selectedPersona || !selectedBusinessIdea) {
-      set({ error: ERROR_MESSAGES.REQUIRED_INFO_MISSING });
-      return;
-    }
-
-    if (
-      !productDetails.category ||
-      !productDetails.feature ||
-      !productDetails.brandImage
-    ) {
-      set({ error: ERROR_MESSAGES.PRODUCT_DETAILS_REQUIRED });
-      return;
-    }
-
-    set({ isLoading: true, error: null });
-
-    try {
-      const result = await callDifyApi<DifyProductNameResponse>({
-        task: "productname",
-        persona: selectedPersona,
-        business_idea: selectedBusinessIdea,
-        product_details: productDetails,
-      });
-
-      set({
-        productNames: result.data?.product_names || [],
-        isLoading: false,
-      });
-    } catch (error) {
-      set({
-        error:
-          error instanceof Error
-            ? error.message
-            : ERROR_MESSAGES.PRODUCT_NAME_GENERATION_FAILED,
-        isLoading: false,
-      });
-    }
+  setProductNames: (names) => {
+    set({ productNames: names, error: null });
   },
 
   selectProductName: (name) => {
     set({ selectedProductName: name, error: null });
   },
 
-  generateLeanCanvas: async () => {
-    const { selectedPersona, selectedBusinessIdea, selectedProductName } =
-      get();
-
-    if (!selectedPersona || !selectedBusinessIdea || !selectedProductName) {
-      set({ error: ERROR_MESSAGES.REQUIRED_INFO_MISSING });
-      return;
-    }
-
-    set({ isLoading: true, error: null });
-
-    try {
-      const result = await callDifyApi<LeanCanvasData>({
-        task: "canvas",
-        persona: selectedPersona,
-        business_idea: selectedBusinessIdea,
-        product_name: selectedProductName,
-      });
-
-      set({
-        leanCanvasData: result.data || null,
-        isLoading: false,
-      });
-    } catch (error) {
-      set({
-        error:
-          error instanceof Error
-            ? error.message
-            : ERROR_MESSAGES.LEAN_CANVAS_GENERATION_FAILED,
-        isLoading: false,
-      });
-    }
+  setLeanCanvasData: (data) => {
+    set({ leanCanvasData: data, error: null });
   },
 
   goToNextStep: () => {
@@ -294,7 +143,6 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   resetWorkflow: () => {
     set({
       currentStep: "keyword",
-      isLoading: false,
       error: null,
       keyword: "",
       creativityLevel: "realistic",
@@ -312,10 +160,6 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   setError: (error) => {
     set({ error });
   },
-
-  setLoading: (loading) => {
-    set({ isLoading: loading });
-  },
 }));
 
 // チュートリアル専用のストア
@@ -329,7 +173,8 @@ interface TutorialStore extends TutorialState {
   resetTutorial: () => void;
 }
 
-const tutorialSteps: TutorialStep[] = [
+// チュートリアルステップを遅延生成してメモリ効率を向上
+const createTutorialSteps = (): TutorialStep[] => [
   {
     id: "welcome",
     title: "AI Lean Canvasへようこそ！",
@@ -411,7 +256,7 @@ export const useTutorialStore = create<TutorialStore>()(
       currentStepIndex: 0,
       hasCompleted: false,
       isSkipped: false,
-      steps: tutorialSteps,
+      steps: createTutorialSteps(),
 
       startTutorial: () => {
         set({

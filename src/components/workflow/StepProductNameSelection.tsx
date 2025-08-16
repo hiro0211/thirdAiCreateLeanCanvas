@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
+import { useGenerateLeanCanvas } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { ProductName } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -26,25 +27,43 @@ export function StepProductNameSelection() {
   const {
     productNames,
     selectedProductName,
-    isLoading,
     error,
-    generateProductNames,
+    selectedPersona,
+    selectedBusinessIdea,
     selectProductName,
-    generateLeanCanvas,
+    setLeanCanvasData,
+    setError,
     goToNextStep,
     goToPreviousStep,
   } = useWorkflowStore();
+
+  const generateLeanCanvasMutation = useGenerateLeanCanvas();
 
   const handleNameSelect = (name: ProductName) => {
     selectProductName(name);
   };
 
   const handleNext = async () => {
-    if (!selectedProductName) return;
+    if (!selectedProductName || !selectedPersona || !selectedBusinessIdea) {
+      setError("必要な情報が選択されていません");
+      return;
+    }
 
-    await generateLeanCanvas();
-    if (!error) {
+    try {
+      setError(null);
+      const leanCanvasData = await generateLeanCanvasMutation.mutateAsync({
+        persona: selectedPersona,
+        businessIdea: selectedBusinessIdea,
+        productName: selectedProductName,
+      });
+      setLeanCanvasData(leanCanvasData);
       goToNextStep();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "リーンキャンバスの生成に失敗しました"
+      );
     }
   };
 
@@ -80,8 +99,8 @@ export function StepProductNameSelection() {
 
       <RetryableErrorDisplay
         error={error}
-        onRetry={generateProductNames}
-        retryLabel="プロダクト名を再生成"
+        onRetry={() => window.location.reload()}
+        retryLabel="ページを再読み込み"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -170,12 +189,14 @@ export function StepProductNameSelection() {
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={handleNext}
-            disabled={!selectedProductName || isLoading}
+            disabled={
+              !selectedProductName || generateLeanCanvasMutation.isLoading
+            }
             size="lg"
             className="flex items-center space-x-2 px-8"
             variant="gradient"
           >
-            {isLoading ? (
+            {generateLeanCanvasMutation.isLoading ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -186,7 +207,7 @@ export function StepProductNameSelection() {
               <ArrowRight className="w-5 h-5" />
             )}
             <span>
-              {isLoading
+              {generateLeanCanvasMutation.isLoading
                 ? "リーンキャンバスを生成中..."
                 : "リーンキャンバスを生成"}
             </span>

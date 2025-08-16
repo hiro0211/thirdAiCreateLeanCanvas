@@ -20,7 +20,6 @@ export function StepBusinessIdeaSelection() {
     businessIdeas,
     selectedBusinessIdea,
     error,
-    generateBusinessIdeas,
     selectBusinessIdea,
     goToNextStep,
     goToPreviousStep,
@@ -65,11 +64,13 @@ export function StepBusinessIdeaSelection() {
         </p>
       </div>
 
-      <RetryableErrorDisplay
-        error={error}
-        onRetry={generateBusinessIdeas}
-        retryLabel="ビジネスアイデアを再生成"
-      />
+      {error && (
+        <RetryableErrorDisplay
+          error={error}
+          onRetry={() => window.location.reload()}
+          retryLabel="ページを再読み込み"
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {businessIdeas.map((idea, index) => (

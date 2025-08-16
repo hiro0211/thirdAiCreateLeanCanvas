@@ -1,5 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // ビルド時のファイルアクセス権限問題を回避
+    forceSwcTransforms: true,
+  },
+  // ビルド最適化設定
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // 出力設定
+  output: 'standalone',
   images: {
     remotePatterns: [],
   },

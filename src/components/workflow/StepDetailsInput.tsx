@@ -14,19 +14,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
+import { useGenerateProductNames } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { ProductDetails } from "@/lib/types";
 
 export function StepDetailsInput() {
   const {
     productDetails,
-    isLoading,
     error,
+    selectedPersona,
+    selectedBusinessIdea,
     setProductDetails,
-    generateProductNames,
+    setProductNames,
+    setError,
     goToNextStep,
     goToPreviousStep,
   } = useWorkflowStore();
+
+  const generateProductNamesMutation = useGenerateProductNames();
 
   const [localDetails, setLocalDetails] =
     useState<ProductDetails>(productDetails);
@@ -45,11 +50,27 @@ export function StepDetailsInput() {
 
   const handleNext = async () => {
     if (!isFormValid) return;
+    if (!selectedPersona || !selectedBusinessIdea) {
+      setError("ペルソナまたはビジネスアイデアが選択されていません");
+      return;
+    }
 
-    setProductDetails(localDetails);
-    await generateProductNames();
-    if (!error) {
+    try {
+      setError(null);
+      setProductDetails(localDetails);
+      const productNames = await generateProductNamesMutation.mutateAsync({
+        persona: selectedPersona,
+        businessIdea: selectedBusinessIdea,
+        productDetails: localDetails,
+      });
+      setProductNames(productNames);
       goToNextStep();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "プロダクト名の生成に失敗しました"
+      );
     }
   };
 
@@ -99,7 +120,7 @@ export function StepDetailsInput() {
         >
           <RetryableErrorDisplay
             error={error}
-            onRetry={generateProductNames}
+            onRetry={handleNext}
             retryLabel="プロダクト名を再生成"
           />
 
@@ -212,11 +233,13 @@ export function StepDetailsInput() {
             >
               <Button
                 onClick={handleNext}
-                disabled={!isFormValid || isLoading}
+                disabled={
+                  !isFormValid || generateProductNamesMutation.isLoading
+                }
                 size="lg"
                 className="flex items-center justify-center space-x-2 px-6 sm:px-8 w-full sm:w-auto min-h-[44px]"
               >
-                {isLoading ? (
+                {generateProductNamesMutation.isLoading ? (
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{
@@ -231,7 +254,9 @@ export function StepDetailsInput() {
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
                 <span className="text-sm sm:text-base">
-                  {isLoading ? "プロダクト名を生成中..." : "プロダクト名を生成"}
+                  {generateProductNamesMutation.isLoading
+                    ? "プロダクト名を生成中..."
+                    : "プロダクト名を生成"}
                 </span>
               </Button>
             </motion.div>

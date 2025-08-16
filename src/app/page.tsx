@@ -1,18 +1,55 @@
 "use client";
 
+import { Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { WorkflowStepper } from "@/components/workflow/WorkflowStepper";
-import { StepKeywordInput } from "@/components/workflow/StepKeywordInput";
-import { StepPersonaSelection } from "@/components/workflow/StepPersonaSelection";
-import { StepCreativityLevelSelection } from "@/components/workflow/StepCreativityLevelSelection";
-import { StepBusinessIdeaSelection } from "@/components/workflow/StepBusinessIdeaSelection";
-import { StepDetailsInput } from "@/components/workflow/StepDetailsInput";
-import { StepProductNameSelection } from "@/components/workflow/StepProductNameSelection";
-import { StepLeanCanvasDisplay } from "@/components/workflow/StepLeanCanvasDisplay";
 import { TutorialProvider } from "@/components/tutorial/TutorialProvider";
 import { TutorialGuide } from "@/components/tutorial/TutorialGuide";
 import { useWorkflowStore } from "@/stores/workflow-store";
+
+// 動的インポートでコード分割を実現
+const StepKeywordInput = lazy(() => 
+  import("@/components/workflow/StepKeywordInput").then(module => ({ 
+    default: module.StepKeywordInput 
+  }))
+);
+
+const StepPersonaSelection = lazy(() => 
+  import("@/components/workflow/StepPersonaSelection").then(module => ({ 
+    default: module.StepPersonaSelection 
+  }))
+);
+
+const StepCreativityLevelSelection = lazy(() => 
+  import("@/components/workflow/StepCreativityLevelSelection").then(module => ({ 
+    default: module.StepCreativityLevelSelection 
+  }))
+);
+
+const StepBusinessIdeaSelection = lazy(() => 
+  import("@/components/workflow/StepBusinessIdeaSelection").then(module => ({ 
+    default: module.StepBusinessIdeaSelection 
+  }))
+);
+
+const StepDetailsInput = lazy(() => 
+  import("@/components/workflow/StepDetailsInput").then(module => ({ 
+    default: module.StepDetailsInput 
+  }))
+);
+
+const StepProductNameSelection = lazy(() => 
+  import("@/components/workflow/StepProductNameSelection").then(module => ({ 
+    default: module.StepProductNameSelection 
+  }))
+);
+
+const StepLeanCanvasDisplay = lazy(() => 
+  import("@/components/workflow/StepLeanCanvasDisplay").then(module => ({ 
+    default: module.StepLeanCanvasDisplay 
+  }))
+);
 
 const stepComponents = {
   keyword: StepKeywordInput,
@@ -23,6 +60,20 @@ const stepComponents = {
   "product-name-selection": StepProductNameSelection,
   "canvas-display": StepLeanCanvasDisplay,
 };
+
+// ローディングコンポーネント
+const StepLoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-[400px]">
+    <div className="flex flex-col items-center space-y-4">
+      <motion.div
+        className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      />
+      <p className="text-sm text-muted-foreground">Loading...</p>
+    </div>
+  </div>
+);
 
 export default function HomePage() {
   const { currentStep } = useWorkflowStore();
@@ -49,7 +100,9 @@ export default function HomePage() {
               transition={{ duration: 0.3 }}
               className="mt-4 sm:mt-8"
             >
-              <CurrentStepComponent />
+              <Suspense fallback={<StepLoadingFallback />}>
+                <CurrentStepComponent />
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </main>

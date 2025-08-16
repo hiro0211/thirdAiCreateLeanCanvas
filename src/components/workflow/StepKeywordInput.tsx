@@ -14,32 +14,36 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
+import { useGeneratePersonas } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 
 export function StepKeywordInput() {
-  const {
-    keyword,
-    isLoading,
-    error,
-    setKeyword,
-    generatePersonas,
-    goToNextStep,
-  } = useWorkflowStore();
+  const { keyword, error, setKeyword, setPersonas, goToNextStep, setError } =
+    useWorkflowStore();
 
   const [localKeyword, setLocalKeyword] = useState(keyword);
+  const generatePersonasMutation = useGeneratePersonas();
 
   const handleSubmit = async () => {
     if (!localKeyword.trim()) return;
 
     setKeyword(localKeyword.trim());
-    await generatePersonas();
-    if (!error) {
+
+    try {
+      const personas = await generatePersonasMutation.mutateAsync(
+        localKeyword.trim()
+      );
+      setPersonas(personas);
       goToNextStep();
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "ペルソナ生成に失敗しました"
+      );
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !isLoading) {
+    if (e.key === "Enter" && !generatePersonasMutation.isPending) {
       handleSubmit();
     }
   };
@@ -90,7 +94,7 @@ export function StepKeywordInput() {
                 onKeyDown={handleKeyPress}
                 placeholder="例: サステナブル、AI、健康管理、教育..."
                 className="text-lg py-6 px-4 border-2 rounded-xl shadow-sm focus:shadow-md transition-all duration-300"
-                disabled={isLoading}
+                disabled={generatePersonasMutation.isPending}
               />
               {localKeyword && (
                 <motion.div
@@ -105,8 +109,13 @@ export function StepKeywordInput() {
           </div>
 
           <RetryableErrorDisplay
-            error={error}
-            onRetry={generatePersonas}
+            error={
+              error ||
+              (generatePersonasMutation.error instanceof Error
+                ? generatePersonasMutation.error.message
+                : "ペルソナ生成中に不明なエラーが発生しました")
+            }
+            onRetry={() => generatePersonasMutation.mutate(localKeyword.trim())}
             retryLabel="ペルソナを再生成"
           />
 
@@ -117,12 +126,14 @@ export function StepKeywordInput() {
           >
             <Button
               onClick={handleSubmit}
-              disabled={!localKeyword.trim() || isLoading}
+              disabled={
+                !localKeyword.trim() || generatePersonasMutation.isPending
+              }
               size="lg"
               className="w-full text-lg py-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               data-tutorial="generate-personas"
             >
-              {isLoading ? (
+              {generatePersonasMutation.isPending ? (
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -133,7 +144,9 @@ export function StepKeywordInput() {
               ) : (
                 <ArrowRight className="w-5 h-5 mr-2" />
               )}
-              {isLoading ? "ペルソナを生成中..." : "ペルソナを生成"}
+              {generatePersonasMutation.isPending
+                ? "ペルソナを生成中..."
+                : "ペルソナを生成"}
             </Button>
           </motion.div>
 
