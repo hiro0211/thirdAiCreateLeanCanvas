@@ -111,7 +111,7 @@ export function StepKeywordInput() {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2"
                 >
                   <Sparkles className="w-5 h-5 text-primary" />
-                </motion.div>
+                  image.png                </motion.div>
               )}
             </div>
           </div>
