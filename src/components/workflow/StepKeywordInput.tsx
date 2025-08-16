@@ -83,7 +83,7 @@ export function StepKeywordInput() {
             AIリーンキャンバス作成
           </CardTitle>
           <CardDescription className="text-lg text-gray-600 mt-2">
-            あなたのビジネスアイデアを具体化しましょう
+            ビジネスアイデアを具体化しましょう
           </CardDescription>
         </CardHeader>
 
@@ -170,7 +170,7 @@ export function StepKeywordInput() {
             <h4 className="font-semibold text-gray-800 mb-2">💡 ヒント</h4>
             <ul className="text-sm text-gray-600 space-y-1">
               <li>• 具体的な業界や技術に関するキーワードが効果的です</li>
-              <li>• 複数のキーワードを組み合わせることも可能です</li>
+              <li>• 複数のキーワードを組み合わせられます</li>
               <li>
                 • 新しいトレンドや社会課題に関連するキーワードもおすすめです
               </li>

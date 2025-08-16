@@ -92,7 +92,7 @@ export function StepPersonaSelection() {
           transition={{ delay: 0.1 }}
           className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3"
         >
-          ターゲットペルソナを選択
+          ペルソナを選択
         </motion.h2>
 
         <motion.p
@@ -102,7 +102,7 @@ export function StepPersonaSelection() {
           className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
         >
           <Sparkles className="inline-block w-5 h-5 mr-2 text-yellow-500" />
-          あなたのビジネスに最も適したペルソナを選んでください
+          最も共感できるペルソナを選んでください
         </motion.p>
       </div>
 
@@ -191,12 +191,12 @@ export function StepPersonaSelection() {
                         <CardTitle className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">
                           ペルソナ {persona.id}
                         </CardTitle>
-                        <div className="flex items-center space-x-2">
+                        {/* <div className="flex items-center space-x-2">
                           <Star className="w-4 h-4 text-yellow-500" />
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             ID: {String(persona.id).padStart(3, "0")}
                           </span>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </CardHeader>
@@ -268,14 +268,14 @@ export function StepPersonaSelection() {
                       transition={{ delay: 0.4 }}
                       className="flex flex-wrap gap-2 pt-2"
                     >
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
+                      {/* <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
                         <Target className="w-3 h-3 mr-1" />
                         ターゲット
                       </span>
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700">
                         <Brain className="w-3 h-3 mr-1" />
                         インサイト
-                      </span>
+                      </span> */}
                     </motion.div>
                   </CardContent>
                 </Card>
