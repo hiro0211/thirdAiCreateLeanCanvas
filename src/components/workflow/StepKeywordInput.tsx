@@ -93,7 +93,7 @@ export function StepKeywordInput() {
               htmlFor="keyword"
               className="text-base font-semibold text-gray-700"
             >
-              ビジネスキーワードを入力してください
+              興味のあるキーワードを入力してください
             </Label>
             <div className="relative" data-tutorial="keyword-input">
               <Input
@@ -109,10 +109,8 @@ export function StepKeywordInput() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
                 >
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  image.png{" "}
                 </motion.div>
               )}
             </div>

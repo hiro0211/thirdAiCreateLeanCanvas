@@ -56,19 +56,6 @@ export function Header() {
           </div>
         </div>
 
-        {/* Navigation Info */}
-        <div className="hidden lg:flex items-center space-x-4">
-          <div className="text-sm text-muted-foreground">
-            {currentStep === "keyword" && "キーワード入力"}
-            {currentStep === "persona-selection" && "ペルソナ選択"}
-            {currentStep === "business-idea-selection" &&
-              "ビジネスアイデア選択"}
-            {currentStep === "details-input" && "詳細入力"}
-            {currentStep === "product-name-selection" && "プロダクト名選択"}
-            {currentStep === "canvas-display" && "リーンキャンバス表示"}
-          </div>
-        </div>
-
         {/* Actions */}
         <div
           className="flex items-center space-x-1 sm:space-x-2"
