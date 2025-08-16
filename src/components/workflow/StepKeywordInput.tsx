@@ -1,21 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
 import { useGeneratePersonas } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
+import { WorkflowHeader } from "./shared";
+import { LAYOUT_PRESETS } from "@/lib/constants/unified-presets";
 
 export function StepKeywordInput() {
   const { keyword, error, setKeyword, setPersonas, goToNextStep, setError } =
@@ -33,7 +29,7 @@ export function StepKeywordInput() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 初回マウント時のみ実行
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!localKeyword.trim()) return;
 
     setKeyword(localKeyword.trim());
@@ -49,20 +45,20 @@ export function StepKeywordInput() {
         error instanceof Error ? error.message : "ペルソナ生成に失敗しました"
       );
     }
-  };
+  }, [localKeyword, setKeyword, generatePersonasMutation, setPersonas, goToNextStep, setError]);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !generatePersonasMutation.isPending) {
       handleSubmit();
     }
-  };
+  }, [handleSubmit, generatePersonasMutation.isPending]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-2xl mx-auto"
+      className={LAYOUT_PRESETS.CONTAINER.CENTERED}
     >
       <Card className="shadow-xl border-0 bg-gradient-to-br from-white via-blue-50/20 to-purple-50/20">
         <CardHeader className="text-center pb-6">
@@ -152,7 +148,7 @@ export function StepKeywordInput() {
                   <Sparkles className="w-5 h-5" />
                 </motion.div>
               ) : (
-                <ArrowRight className="w-5 h-5 mr-2" />
+                <Sparkles className="w-5 h-5 mr-2" />
               )}
               {generatePersonasMutation.isPending
                 ? "ペルソナを生成中..."

@@ -1,19 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Lightbulb, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Lightbulb, CheckCircle } from "lucide-react";
 import { useWorkflowStore } from "@/stores/workflow-store";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { BusinessIdea } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { WorkflowHeader, WorkflowNavigation, SelectableCard } from "./shared";
+import { LAYOUT_PRESETS } from "@/lib/constants/unified-presets";
 
 export function StepBusinessIdeaSelection() {
   const {
@@ -25,44 +19,32 @@ export function StepBusinessIdeaSelection() {
     goToPreviousStep,
   } = useWorkflowStore();
 
-  const handleIdeaSelect = (idea: BusinessIdea) => {
+  const handleIdeaSelect = useCallback((idea: BusinessIdea) => {
     selectBusinessIdea(idea);
-  };
+  }, [selectBusinessIdea]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (selectedBusinessIdea) {
       goToNextStep();
     }
-  };
+  }, [selectedBusinessIdea, goToNextStep]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-6xl mx-auto"
+      className={LAYOUT_PRESETS.CONTAINER.MAIN}
     >
-      <div className="text-center mb-8">
-        <motion.div
-          className="mx-auto mb-4 w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center"
-          animate={{
-            rotate: [0, 10, -10, 0],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          <Lightbulb className="w-8 h-8 text-white" />
-        </motion.div>
-        <h2 className="text-3xl font-bold bg-gradient-secondary bg-clip-text text-transparent">
-          ビジネスアイデアを選択してください
-        </h2>
-        <p className="text-lg text-gray-600 mt-2">
-          最も魅力的で実現可能なアイデアを1つ選んでください
-        </p>
-      </div>
+      <WorkflowHeader
+        icon={<Lightbulb className="w-10 h-10" />}
+        title="ビジネスアイデアを選択してください"
+        description="最も魅力的で実現可能なアイデアを1つ選んでください"
+        gradient="secondary"
+        animationType="bounce"
+        iconSize="lg"
+        className="mb-8"
+      />
 
       {error && (
         <RetryableErrorDisplay
@@ -72,104 +54,88 @@ export function StepBusinessIdeaSelection() {
         />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {businessIdeas.map((idea, index) => (
-          <motion.div
-            key={idea.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-            className="transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Card
-              className={cn(
-                "cursor-pointer transition-all duration-300 hover:shadow-xl border-2 h-full",
-                selectedBusinessIdea?.id === idea.id
-                  ? "border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5"
-                  : "border-gray-200 hover:border-primary/50"
-              )}
-              onClick={() => handleIdeaSelect(idea)}
-            >
-              <CardHeader className="relative">
-                {selectedBusinessIdea?.id === idea.id && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute top-4 right-4"
-                  >
-                    <CheckCircle className="w-6 h-6 text-primary" />
-                  </motion.div>
-                )}
-                <CardTitle className="text-lg font-semibold text-gray-800 flex items-center space-x-2">
+      <div className={LAYOUT_PRESETS.GRID.TWO_COLUMN + " mb-8"}>
+        {businessIdeas.map((idea, index) => {
+          const isSelected = selectedBusinessIdea?.id === idea.id;
+          
+          return (
+            <SelectableCard
+              key={idea.id}
+              item={idea}
+              index={index}
+              isSelected={isSelected}
+              onSelect={handleIdeaSelect}
+              renderHeader={(idea) => (
+                <div className="flex items-center space-x-2">
                   <Lightbulb className="w-5 h-5 text-amber-500" />
-                  <span>アイデア {idea.id}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-3">
-                    ビジネスコンセプト
-                  </h4>
-                  <p className="text-sm text-gray-600 leading-relaxed bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg">
-                    {idea.idea_text}
-                  </p>
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    アイデア {idea.id}
+                  </h3>
                 </div>
-
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2 flex items-center space-x-2">
-                    <span>💡</span>
-                    <span>発想のヒント</span>
-                  </h4>
-                  <p className="text-sm text-gray-600 leading-relaxed bg-amber-50 p-3 rounded-lg border border-amber-200">
-                    {idea.osborn_hint}
-                  </p>
+              )}
+              renderContent={(idea) => (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      ビジネスコンセプト
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-3 rounded-lg">
+                      {idea.idea_text}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                      <span>💡</span>
+                      <span>発想のヒント</span>
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-200 dark:border-amber-800">
+                      {idea.osborn_hint}
+                    </p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={goToPreviousStep}
-          className="flex items-center space-x-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>戻る</span>
-        </Button>
-
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button
-            onClick={handleNext}
-            disabled={!selectedBusinessIdea}
-            size="lg"
-            className="flex items-center space-x-2 px-8"
-          >
-            <ArrowRight className="w-5 h-5" />
-            <span>次へ進む</span>
-          </Button>
-        </motion.div>
+              )}
+              animationDelay={0.1}
+            />
+          );
+        })}
       </div>
 
       {/* Selected Idea Summary */}
-      {selectedBusinessIdea && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200"
-        >
-          <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <span>選択されたアイデア</span>
-          </h4>
-          <p className="text-sm text-gray-700">
-            {selectedBusinessIdea.idea_text}
-          </p>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {selectedBusinessIdea && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 100 }}
+            className="mb-8 mx-auto max-w-3xl"
+          >
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-blue-600 p-1">
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-6">
+                <div className="flex items-start space-x-4">
+                  <CheckCircle className="w-10 h-10 text-green-500 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">
+                      選択されたアイデア
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                      {selectedBusinessIdea.idea_text}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <WorkflowNavigation
+        onPrevious={goToPreviousStep}
+        onNext={handleNext}
+        isNextDisabled={!selectedBusinessIdea}
+        nextLabel="次へ進む"
+        nextVariant="gradient"
+      />
     </motion.div>
   );
 }

@@ -1,20 +1,14 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Lightbulb, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useCallback } from "react";
+import { Lightbulb } from "lucide-react";
 import { useWorkflowStore } from "@/stores/workflow-store";
 import { useGenerateBusinessIdeas } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { CreativityLevel } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { WorkflowHeader, WorkflowNavigation, SelectableCard } from "./shared";
+import { LAYOUT_PRESETS } from "@/lib/constants/unified-presets";
+import { motion } from "framer-motion";
 
 const creativityOptions: Array<{
   level: CreativityLevel;
@@ -60,11 +54,11 @@ export function StepCreativityLevelSelection() {
 
   const generateBusinessIdeasMutation = useGenerateBusinessIdeas();
 
-  const handleLevelSelect = (level: CreativityLevel) => {
-    setCreativityLevel(level);
-  };
+  const handleLevelSelect = useCallback((option: typeof creativityOptions[0]) => {
+    setCreativityLevel(option.level);
+  }, [setCreativityLevel]);
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     if (!selectedPersona) {
       setError("ペルソナが選択されていません");
       return;
@@ -85,84 +79,59 @@ export function StepCreativityLevelSelection() {
           : "ビジネスアイデアの生成に失敗しました"
       );
     }
-  };
+  }, [selectedPersona, creativityLevel, setError, generateBusinessIdeasMutation, setBusinessIdeas, goToNextStep]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-6xl mx-auto"
+      className={LAYOUT_PRESETS.CONTAINER.MAIN}
     >
-      <div className="text-center mb-8">
-        <motion.div
-          className="mx-auto mb-4 w-16 h-16 bg-gradient-accent rounded-full flex items-center justify-center"
-          animate={{
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          <Lightbulb className="w-8 h-8 text-white" />
-        </motion.div>
-        <h2 className="text-3xl font-bold bg-gradient-accent bg-clip-text text-transparent">
-          思考モードを選択してください
-        </h2>
-        <p className="text-lg text-gray-600 mt-2">
-          ビジネスアイデアの創造性レベルを選んでください
-        </p>
-      </div>
+      <WorkflowHeader
+        icon={<Lightbulb className="w-10 h-10" />}
+        title="思考モードを選択してください"
+        description="ビジネスアイデアの創造性レベルを選んでください"
+        gradient="accent"
+        animationType="scale"
+        iconSize="lg"
+        className="mb-8"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {creativityOptions.map((option, index) => (
-          <motion.div
-            key={option.level}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-            className="transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Card
-              className={cn(
-                "cursor-pointer transition-all duration-300 hover:shadow-xl border-2 h-full",
-                creativityLevel === option.level
-                  ? "border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-accent/5"
-                  : "border-gray-200 hover:border-primary/50"
+        {creativityOptions.map((option, index) => {
+          const isSelected = creativityLevel === option.level;
+          
+          return (
+            <SelectableCard
+              key={option.level}
+              item={option}
+              index={index}
+              isSelected={isSelected}
+              onSelect={handleLevelSelect}
+              renderHeader={(option) => (
+                <div className="text-center">
+                  <div className="text-4xl mb-2">{option.icon}</div>
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                    {option.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {option.description}
+                  </p>
+                </div>
               )}
-              onClick={() => handleLevelSelect(option.level)}
-            >
-              <CardHeader className="relative text-center">
-                {creativityLevel === option.level && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute top-4 right-4"
-                  >
-                    <CheckCircle className="w-6 h-6 text-primary" />
-                  </motion.div>
-                )}
-                <div className="text-4xl mb-2">{option.icon}</div>
-                <CardTitle className="text-xl font-bold text-gray-800">
-                  {option.title}
-                </CardTitle>
-                <CardDescription className="text-sm text-gray-600">
-                  {option.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              renderContent={(option) => (
                 <div>
-                  <h4 className="font-medium text-gray-700 mb-2">例:</h4>
-                  <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-md">
+                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">例:</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
                     {option.example}
                   </p>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+              )}
+              animationDelay={0.1}
+            />
+          );
+        })}
       </div>
 
       <RetryableErrorDisplay
@@ -171,44 +140,14 @@ export function StepCreativityLevelSelection() {
         retryLabel="ビジネスアイデアを再生成"
       />
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={goToPreviousStep}
-          className="flex items-center space-x-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>戻る</span>
-        </Button>
-
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button
-            onClick={handleNext}
-            disabled={
-              !creativityLevel || generateBusinessIdeasMutation.isLoading
-            }
-            size="lg"
-            className="flex items-center space-x-2 px-8"
-          >
-            {generateBusinessIdeasMutation.isLoading ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              >
-                <Lightbulb className="w-5 h-5" />
-              </motion.div>
-            ) : (
-              <ArrowRight className="w-5 h-5" />
-            )}
-            <span>
-              {generateBusinessIdeasMutation.isLoading
-                ? "ビジネスアイデアを生成中..."
-                : "ビジネスアイデアを生成"}
-            </span>
-          </Button>
-        </motion.div>
-      </div>
+      <WorkflowNavigation
+        onPrevious={goToPreviousStep}
+        onNext={handleNext}
+        isNextDisabled={!creativityLevel}
+        isLoading={generateBusinessIdeasMutation.isLoading}
+        nextLabel={generateBusinessIdeasMutation.isLoading ? "ビジネスアイデアを生成中..." : "ビジネスアイデアを生成"}
+        nextVariant="gradient"
+      />
     </motion.div>
   );
 }

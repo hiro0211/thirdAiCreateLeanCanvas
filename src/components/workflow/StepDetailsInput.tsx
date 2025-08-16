@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Package, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import { Package, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,8 @@ import { useWorkflowStore } from "@/stores/workflow-store";
 import { useGenerateProductNames } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { ProductDetails } from "@/lib/types";
+import { WorkflowHeader, WorkflowNavigation } from "./shared";
+import { LAYOUT_PRESETS } from "@/lib/constants/unified-presets";
 
 export function StepDetailsInput() {
   const {
@@ -36,19 +38,19 @@ export function StepDetailsInput() {
   const [localDetails, setLocalDetails] =
     useState<ProductDetails>(productDetails);
 
-  const handleInputChange = (field: keyof ProductDetails, value: string) => {
+  const handleInputChange = useCallback((field: keyof ProductDetails, value: string) => {
     setLocalDetails((prev) => ({
       ...prev,
       [field]: value,
     }));
-  };
+  }, []);
 
   const isFormValid =
     localDetails.category.trim() &&
     localDetails.feature.trim() &&
     localDetails.brandImage.trim();
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     if (!isFormValid) return;
     if (!selectedPersona || !selectedBusinessIdea) {
       setError("ペルソナまたはビジネスアイデアが選択されていません");
@@ -72,36 +74,24 @@ export function StepDetailsInput() {
           : "プロダクト名の生成に失敗しました"
       );
     }
-  };
+  }, [isFormValid, selectedPersona, selectedBusinessIdea, setError, setProductDetails, localDetails, generateProductNamesMutation, setProductNames, goToNextStep]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-3xl mx-auto px-2 sm:px-4"
+      className={LAYOUT_PRESETS.CONTAINER.CENTERED + " px-2 sm:px-4"}
     >
-      <div className="text-center mb-6 sm:mb-8">
-        <motion.div
-          className="mx-auto mb-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-primary rounded-full flex items-center justify-center"
-          animate={{
-            rotateY: [0, 360],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          <Package className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-        </motion.div>
-        <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-          商品・サービス詳細
-        </h2>
-        <p className="text-base sm:text-lg text-gray-600 mt-2 px-2">
-          プロダクト名生成のための詳細情報を入力してください
-        </p>
-      </div>
+      <WorkflowHeader
+        icon={<Package className="w-8 h-8 sm:w-10 sm:h-10" />}
+        title="商品・サービス詳細"
+        description="プロダクト名生成のための詳細情報を入力してください"
+        gradient="primary"
+        animationType="rotate"
+        iconSize="lg"
+        className="mb-6 sm:mb-8"
+      />
 
       <Card className="shadow-xl border-0 bg-gradient-to-br from-white via-purple-50/20 to-blue-50/20 mx-2 sm:mx-0">
         <CardHeader className="pb-4 sm:pb-6">
@@ -216,50 +206,15 @@ export function StepDetailsInput() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 gap-3 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={goToPreviousStep}
-              className="flex items-center space-x-2 w-full sm:w-auto min-h-[44px]"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>戻る</span>
-            </Button>
-
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full sm:w-auto"
-            >
-              <Button
-                onClick={handleNext}
-                disabled={
-                  !isFormValid || generateProductNamesMutation.isLoading
-                }
-                size="lg"
-                className="flex items-center justify-center space-x-2 px-6 sm:px-8 w-full sm:w-auto min-h-[44px]"
-              >
-                {generateProductNamesMutation.isLoading ? (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                  >
-                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </motion.div>
-                ) : (
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                )}
-                <span className="text-sm sm:text-base">
-                  {generateProductNamesMutation.isLoading
-                    ? "プロダクト名を生成中..."
-                    : "プロダクト名を生成"}
-                </span>
-              </Button>
-            </motion.div>
+          <div className="pt-4 sm:pt-6">
+            <WorkflowNavigation
+              onPrevious={goToPreviousStep}
+              onNext={handleNext}
+              isNextDisabled={!isFormValid}
+              isLoading={generateProductNamesMutation.isLoading}
+              nextLabel={generateProductNamesMutation.isLoading ? "プロダクト名を生成中..." : "プロダクト名を生成"}
+              nextVariant="gradient"
+            />
           </div>
         </CardContent>
       </Card>

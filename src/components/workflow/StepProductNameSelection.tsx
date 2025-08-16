@@ -1,27 +1,14 @@
 "use client";
 
-import { motion } from "framer-motion";
-import {
-  Tag,
-  ArrowRight,
-  ArrowLeft,
-  CheckCircle,
-  ThumbsUp,
-  ThumbsDown,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Tag, CheckCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useWorkflowStore } from "@/stores/workflow-store";
 import { useGenerateLeanCanvas } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { ProductName } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { WorkflowHeader, WorkflowNavigation, SelectableCard } from "./shared";
+import { LAYOUT_PRESETS } from "@/lib/constants/unified-presets";
 
 export function StepProductNameSelection() {
   const {
@@ -39,11 +26,11 @@ export function StepProductNameSelection() {
 
   const generateLeanCanvasMutation = useGenerateLeanCanvas();
 
-  const handleNameSelect = (name: ProductName) => {
+  const handleNameSelect = useCallback((name: ProductName) => {
     selectProductName(name);
-  };
+  }, [selectProductName]);
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     if (!selectedProductName || !selectedPersona || !selectedBusinessIdea) {
       setError("必要な情報が選択されていません");
       return;
@@ -65,37 +52,24 @@ export function StepProductNameSelection() {
           : "リーンキャンバスの生成に失敗しました"
       );
     }
-  };
+  }, [selectedProductName, selectedPersona, selectedBusinessIdea, setError, generateLeanCanvasMutation, setLeanCanvasData, goToNextStep]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-6xl mx-auto"
+      className={LAYOUT_PRESETS.CONTAINER.MAIN}
     >
-      <div className="text-center mb-8">
-        <motion.div
-          className="mx-auto mb-4 w-16 h-16 bg-gradient-accent rounded-full flex items-center justify-center"
-          animate={{
-            scale: [1, 1.1, 1],
-            rotate: [0, 5, -5, 0],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          <Tag className="w-8 h-8 text-white" />
-        </motion.div>
-        <h2 className="text-3xl font-bold bg-gradient-accent bg-clip-text text-transparent">
-          プロダクト名を選択してください
-        </h2>
-        <p className="text-lg text-gray-600 mt-2">
-          最も魅力的で覚えやすい名前を1つ選んでください
-        </p>
-      </div>
+      <WorkflowHeader
+        icon={<Tag className="w-10 h-10" />}
+        title="プロダクト名を選択してください"
+        description="最も魅力的で覚えやすい名前を1つ選んでください"
+        gradient="accent"
+        animationType="bounce"
+        iconSize="lg"
+        className="mb-8"
+      />
 
       <RetryableErrorDisplay
         error={error}
@@ -103,138 +77,104 @@ export function StepProductNameSelection() {
         retryLabel="ページを再読み込み"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {productNames.map((name, index) => (
-          <motion.div
-            key={name.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-            className="transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Card
-              className={cn(
-                "cursor-pointer transition-all duration-300 hover:shadow-xl border-2 h-full",
-                selectedProductName?.id === name.id
-                  ? "border-primary shadow-xl ring-4 ring-primary/20 bg-gradient-to-br from-primary/5 to-accent/5"
-                  : "border-gray-200 hover:border-primary/50"
+      <div className={LAYOUT_PRESETS.GRID.TWO_COLUMN + " mb-8"}>
+        {productNames.map((name, index) => {
+          const isSelected = selectedProductName?.id === name.id;
+          
+          return (
+            <SelectableCard
+              key={name.id}
+              item={name}
+              index={index}
+              isSelected={isSelected}
+              onSelect={handleNameSelect}
+              renderHeader={(name) => (
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                    {name.name}
+                  </h3>
+                  <div className="w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full"></div>
+                </div>
               )}
-              onClick={() => handleNameSelect(name)}
-            >
-              <CardHeader className="relative">
-                {selectedProductName?.id === name.id && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute top-4 right-4"
-                  >
-                    <CheckCircle className="w-6 h-6 text-primary" />
-                  </motion.div>
-                )}
-                <CardTitle className="text-2xl font-bold text-center text-gray-800 mb-2">
-                  {name.name}
-                </CardTitle>
-                <div className="w-full h-1 bg-gradient-primary rounded-full"></div>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2 flex items-center space-x-2">
-                    <span>💡</span>
-                    <span>命名理由</span>
-                  </h4>
-                  <p className="text-sm text-gray-600 leading-relaxed bg-blue-50 p-3 rounded-lg">
-                    {name.reason}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3">
+              renderContent={(name) => (
+                <div className="space-y-4">
                   <div>
-                    <h5 className="font-medium text-gray-700 text-sm mb-2 flex items-center space-x-1">
-                      <ThumbsUp className="w-4 h-4 text-green-600" />
-                      <span>メリット</span>
-                    </h5>
-                    <p className="text-xs text-gray-600 bg-green-50 p-2 rounded-md border border-green-200">
-                      {name.pros}
+                    <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                      <span>💡</span>
+                      <span>命名理由</span>
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                      {name.reason}
                     </p>
                   </div>
-
-                  <div>
-                    <h5 className="font-medium text-gray-700 text-sm mb-2 flex items-center space-x-1">
-                      <ThumbsDown className="w-4 h-4 text-orange-600" />
-                      <span>注意点</span>
-                    </h5>
-                    <p className="text-xs text-gray-600 bg-orange-50 p-2 rounded-md border border-orange-200">
-                      {name.cons}
-                    </p>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div>
+                      <h5 className="font-medium text-gray-700 dark:text-gray-300 text-sm mb-2 flex items-center space-x-1">
+                        <ThumbsUp className="w-4 h-4 text-green-600" />
+                        <span>メリット</span>
+                      </h5>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900/20 p-2 rounded-md border border-green-200 dark:border-green-800">
+                        {name.pros}
+                      </p>
+                    </div>
+                    <div>
+                      <h5 className="font-medium text-gray-700 dark:text-gray-300 text-sm mb-2 flex items-center space-x-1">
+                        <ThumbsDown className="w-4 h-4 text-orange-600" />
+                        <span>注意点</span>
+                      </h5>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 bg-orange-50 dark:bg-orange-900/20 p-2 rounded-md border border-orange-200 dark:border-orange-800">
+                        {name.cons}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={goToPreviousStep}
-          className="flex items-center space-x-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>戻る</span>
-        </Button>
-
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button
-            onClick={handleNext}
-            disabled={
-              !selectedProductName || generateLeanCanvasMutation.isLoading
-            }
-            size="lg"
-            className="flex items-center space-x-2 px-8"
-            variant="gradient"
-          >
-            {generateLeanCanvasMutation.isLoading ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              >
-                <Tag className="w-5 h-5" />
-              </motion.div>
-            ) : (
-              <ArrowRight className="w-5 h-5" />
-            )}
-            <span>
-              {generateLeanCanvasMutation.isLoading
-                ? "リーンキャンバスを生成中..."
-                : "リーンキャンバスを生成"}
-            </span>
-          </Button>
-        </motion.div>
+              )}
+              animationDelay={0.1}
+            />
+          );
+        })}
       </div>
 
       {/* Selected Name Summary */}
-      {selectedProductName && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200"
-        >
-          <h4 className="font-bold text-xl text-gray-800 mb-2 flex items-center space-x-2">
-            <CheckCircle className="w-6 h-6 text-green-600" />
-            <span>選択されたプロダクト名</span>
-          </h4>
-          <div className="text-3xl font-bold text-center text-primary mb-3 py-4 bg-white rounded-lg shadow-sm">
-            {selectedProductName.name}
-          </div>
-          <p className="text-sm text-gray-700">
-            <span className="font-medium">選択理由:</span>{" "}
-            {selectedProductName.reason}
-          </p>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {selectedProductName && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 100 }}
+            className="mb-8 mx-auto max-w-3xl"
+          >
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 p-1">
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-6">
+                <div className="flex items-start space-x-4">
+                  <CheckCircle className="w-10 h-10 text-green-500 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">
+                      選択されたプロダクト名
+                    </h4>
+                    <div className="text-2xl font-bold text-center text-primary mb-3 py-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      {selectedProductName.name}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <span className="font-medium">選択理由:</span> {selectedProductName.reason}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <WorkflowNavigation
+        onPrevious={goToPreviousStep}
+        onNext={handleNext}
+        isNextDisabled={!selectedProductName}
+        isLoading={generateLeanCanvasMutation.isLoading}
+        nextLabel={generateLeanCanvasMutation.isLoading ? "リーンキャンバスを生成中..." : "リーンキャンバスを生成"}
+        nextVariant="gradient"
+      />
     </motion.div>
   );
 }
