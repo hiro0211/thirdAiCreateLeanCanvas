@@ -76,12 +76,12 @@ export const UI_LABELS = {
 // ワークフローステップ
 export const WORKFLOW_STEPS = {
   STEP_LABELS: {
-    KEYWORD: "キーワード入力",
-    PERSONA_SELECTION: "ペルソナ選択",
-    CREATIVITY_LEVEL_SELECTION: "思考モード選択",
-    BUSINESS_IDEA_SELECTION: "ビジネスアイデア選択",
+    KEYWORD: "キーワード",
+    PERSONA_SELECTION: "ペルソナ",
+    CREATIVITY_LEVEL_SELECTION: "発想スタイル",
+    BUSINESS_IDEA_SELECTION: "ビジネスアイデア",
     DETAILS_INPUT: "詳細入力",
-    PRODUCT_NAME_SELECTION: "プロダクト名選択",
+    PRODUCT_NAME_SELECTION: "プロダクト名",
     CANVAS_DISPLAY: "リーンキャンバス",
   },
 

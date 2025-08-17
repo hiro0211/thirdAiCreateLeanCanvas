@@ -19,23 +19,23 @@ const creativityOptions: Array<{
 }> = [
   {
     level: "realistic",
-    title: "現実的",
-    description: "実現可能で堅実なアプローチ",
+    title: "現実的なアイデア",
+    description: "まずは、現実的な一歩から",
     example: "既存の市場やトレンドに基づいた実証済みのビジネスモデル",
     icon: "🎯",
   },
   {
     level: "creative",
-    title: "革新的",
-    description: "創造的で差別化されたアイデア",
+    title: "革新的なアイデア",
+    description: "業界の常識を、少しだけ超えてみる",
     example: "新しい技術や手法を組み合わせた独創的なソリューション",
     icon: "💡",
   },
   {
     level: "visionary",
-    title: "ぶっとび",
-    description: "業界を変革する破壊的なアイデア",
-    example: "常識を覆す斬新で大胆なビジネスコンセプト",
+    title: "ぶっとびアイデア",
+    description: "一度、思考を宇宙へ飛ばしてみる",
+    example: "「もし何でも可能なら？」という視点で、常識を覆す大胆なコンセプトを探します。突飛なアイデアが、革新的な現実を生むことがあります。",
     icon: "🚀",
   },
 ];
@@ -90,8 +90,8 @@ export function StepCreativityLevelSelection() {
     >
       <WorkflowHeader
         icon={<Lightbulb className="w-10 h-10" />}
-        title="思考モードを選択してください"
-        description="ビジネスアイデアの創造性レベルを選んでください"
+        title="アイデアの発想スタイルを選んでください"
+        description="アイデア方向性を選択してください"
         gradient="accent"
         animationType="scale"
         iconSize="lg"
