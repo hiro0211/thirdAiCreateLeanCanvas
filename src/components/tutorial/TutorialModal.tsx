@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, SkipForward, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useTutorialStore } from '@/stores/workflow-store';
-import { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ChevronLeft, ChevronRight, SkipForward, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { useTutorialStore } from "@/stores/workflow-store";
+import { useEffect, useRef } from "react";
 
 export function TutorialModal() {
   const {
@@ -27,13 +33,13 @@ export function TutorialModal() {
   // ESCキーでモーダルを閉じる
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isActive) {
+      if (e.key === "Escape" && isActive) {
         skipTutorial();
       }
     };
 
-    document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
   }, [isActive, skipTutorial]);
 
   // ターゲット要素をハイライト
@@ -42,17 +48,17 @@ export function TutorialModal() {
 
     const targetElement = document.querySelector(currentStep.target);
     if (targetElement) {
-      targetElement.classList.add('tutorial-highlight');
-      targetElement.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center',
-        inline: 'center'
+      targetElement.classList.add("tutorial-highlight");
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
       });
     }
 
     return () => {
-      const allHighlighted = document.querySelectorAll('.tutorial-highlight');
-      allHighlighted.forEach(el => el.classList.remove('tutorial-highlight'));
+      const allHighlighted = document.querySelectorAll(".tutorial-highlight");
+      allHighlighted.forEach((el) => el.classList.remove("tutorial-highlight"));
     };
   }, [isActive, currentStep]);
 
@@ -67,20 +73,20 @@ export function TutorialModal() {
   const getModalPosition = () => {
     if (!currentStep.target) {
       return {
-        position: 'fixed' as const,
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
+        position: "fixed" as const,
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
       };
     }
 
     const targetElement = document.querySelector(currentStep.target);
     if (!targetElement) {
       return {
-        position: 'fixed' as const,
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
+        position: "fixed" as const,
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
       };
     }
 
@@ -90,36 +96,66 @@ export function TutorialModal() {
     const gap = 20;
 
     switch (currentStep.position) {
-      case 'top':
+      case "top":
         return {
-          position: 'fixed' as const,
+          position: "fixed" as const,
           top: Math.max(gap, rect.top - modalHeight - gap),
-          left: Math.max(gap, Math.min(window.innerWidth - modalWidth - gap, rect.left + rect.width / 2 - modalWidth / 2)),
+          left: Math.max(
+            gap,
+            Math.min(
+              window.innerWidth - modalWidth - gap,
+              rect.left + rect.width / 2 - modalWidth / 2
+            )
+          ),
         };
-      case 'bottom':
+      case "bottom":
         return {
-          position: 'fixed' as const,
-          top: Math.min(window.innerHeight - modalHeight - gap, rect.bottom + gap),
-          left: Math.max(gap, Math.min(window.innerWidth - modalWidth - gap, rect.left + rect.width / 2 - modalWidth / 2)),
+          position: "fixed" as const,
+          top: Math.min(
+            window.innerHeight - modalHeight - gap,
+            rect.bottom + gap
+          ),
+          left: Math.max(
+            gap,
+            Math.min(
+              window.innerWidth - modalWidth - gap,
+              rect.left + rect.width / 2 - modalWidth / 2
+            )
+          ),
         };
-      case 'left':
+      case "left":
         return {
-          position: 'fixed' as const,
-          top: Math.max(gap, Math.min(window.innerHeight - modalHeight - gap, rect.top + rect.height / 2 - modalHeight / 2)),
+          position: "fixed" as const,
+          top: Math.max(
+            gap,
+            Math.min(
+              window.innerHeight - modalHeight - gap,
+              rect.top + rect.height / 2 - modalHeight / 2
+            )
+          ),
           left: Math.max(gap, rect.left - modalWidth - gap),
         };
-      case 'right':
+      case "right":
         return {
-          position: 'fixed' as const,
-          top: Math.max(gap, Math.min(window.innerHeight - modalHeight - gap, rect.top + rect.height / 2 - modalHeight / 2)),
-          left: Math.min(window.innerWidth - modalWidth - gap, rect.right + gap),
+          position: "fixed" as const,
+          top: Math.max(
+            gap,
+            Math.min(
+              window.innerHeight - modalHeight - gap,
+              rect.top + rect.height / 2 - modalHeight / 2
+            )
+          ),
+          left: Math.min(
+            window.innerWidth - modalWidth - gap,
+            rect.right + gap
+          ),
         };
       default:
         return {
-          position: 'fixed' as const,
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+          position: "fixed" as const,
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
         };
     }
   };
@@ -130,7 +166,7 @@ export function TutorialModal() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-[9999] bg-black/60"
         onClick={handleBackdropClick}
       >
         {/* ターゲット要素のスポットライト効果 */}
@@ -141,10 +177,13 @@ export function TutorialModal() {
             exit={{ scale: 0.8, opacity: 0 }}
             className="absolute pointer-events-none"
             style={{
-              boxShadow: '0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 9999px rgba(0, 0, 0, 0.7)',
-              borderRadius: '8px',
+              boxShadow:
+                "0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 9999px rgba(0, 0, 0, 0.7)",
+              borderRadius: "8px",
               ...(() => {
-                const targetElement = document.querySelector(currentStep.target!);
+                const targetElement = document.querySelector(
+                  currentStep.target!
+                );
                 if (!targetElement) return {};
                 const rect = targetElement.getBoundingClientRect();
                 return {
@@ -193,14 +232,20 @@ export function TutorialModal() {
               {/* プログレスバー */}
               <div className="mt-4">
                 <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                  <span>ステップ {currentStepIndex + 1} / {steps.length}</span>
-                  <span>{Math.round(((currentStepIndex + 1) / steps.length) * 100)}%</span>
+                  <span>
+                    ステップ {currentStepIndex + 1} / {steps.length}
+                  </span>
+                  <span>
+                    {Math.round(((currentStepIndex + 1) / steps.length) * 100)}%
+                  </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <motion.div
                     className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
                     initial={{ width: 0 }}
-                    animate={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
+                    animate={{
+                      width: `${((currentStepIndex + 1) / steps.length) * 100}%`,
+                    }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
                   />
                 </div>
@@ -231,7 +276,7 @@ export function TutorialModal() {
                       <span>戻る</span>
                     </Button>
                   )}
-                  
+
                   {currentStep.showSkip && (
                     <Button
                       variant="ghost"
@@ -245,7 +290,10 @@ export function TutorialModal() {
                   )}
                 </div>
 
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Button
                     onClick={isLastStep ? completeTutorial : nextStep}
                     size="sm"

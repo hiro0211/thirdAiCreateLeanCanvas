@@ -1,18 +1,19 @@
-'use client';
+"use client";
 
-import { ReactNode, useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTutorialStore } from '@/stores/workflow-store';
+import { ReactNode, useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTutorialStore } from "@/stores/workflow-store";
 
 interface TutorialProviderProps {
   children: ReactNode;
 }
 
 export function TutorialProvider({ children }: TutorialProviderProps) {
-  const { hasCompleted, isSkipped, startTutorial, skipTutorial } = useTutorialStore();
+  const { hasCompleted, isSkipped, startTutorial, skipTutorial } =
+    useTutorialStore();
   const [showWelcome, setShowWelcome] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -24,14 +25,14 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   // 初回訪問時のウェルカムモーダル表示判定
   useEffect(() => {
     if (!mounted) return;
-    
+
     const isFirstVisit = !hasCompleted && !isSkipped;
     if (isFirstVisit) {
       // 少し遅延させてUIが落ち着いてから表示
       const timer = setTimeout(() => {
         setShowWelcome(true);
       }, 1500);
-      
+
       return () => clearTimeout(timer);
     }
   }, [mounted, hasCompleted, isSkipped]);
@@ -53,7 +54,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   return (
     <>
       {children}
-      
+
       {/* ウェルカムモーダル */}
       <AnimatePresence>
         {showWelcome && (
@@ -61,7 +62,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4"
             onClick={handleSkipWelcome}
           >
             <motion.div
@@ -81,8 +82,16 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
                       scale: [1, 1.1, 1],
                     }}
                     transition={{
-                      rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-                      scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                      rotate: {
+                        duration: 20,
+                        repeat: Infinity,
+                        ease: "linear",
+                      },
+                      scale: {
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      },
                     }}
                   >
                     <Sparkles className="w-8 h-8 text-white" />
@@ -100,18 +109,30 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
                     className="space-y-4"
                   >
                     <p className="text-lg text-muted-foreground leading-relaxed">
-                      AIと一緒にステップバイステップで<br />
-                      <span className="font-semibold text-foreground">リーンキャンバスを作成</span>しましょう
+                      AIと一緒にステップバイステップで
+                      <br />
+                      <span className="font-semibold text-foreground">
+                        リーンキャンバスを作成
+                      </span>
+                      しましょう
                     </p>
-                    
+
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="bg-blue-50 dark:bg-blue-950/50 p-3 rounded-lg">
-                        <div className="font-semibold text-blue-700 dark:text-blue-300">✨ AI生成</div>
-                        <div className="text-blue-600 dark:text-blue-400">ペルソナ・アイデア・プロダクト名</div>
+                        <div className="font-semibold text-blue-700 dark:text-blue-300">
+                          ✨ AI生成
+                        </div>
+                        <div className="text-blue-600 dark:text-blue-400">
+                          ペルソナ・アイデア・プロダクト名
+                        </div>
                       </div>
                       <div className="bg-purple-50 dark:bg-purple-950/50 p-3 rounded-lg">
-                        <div className="font-semibold text-purple-700 dark:text-purple-300">🎯 簡単操作</div>
-                        <div className="text-purple-600 dark:text-purple-400">選択するだけで完成</div>
+                        <div className="font-semibold text-purple-700 dark:text-purple-300">
+                          🎯 簡単操作
+                        </div>
+                        <div className="text-purple-600 dark:text-purple-400">
+                          選択するだけで完成
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -136,7 +157,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
                         チュートリアルを開始
                       </Button>
                     </motion.div>
-                    
+
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}

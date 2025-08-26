@@ -97,7 +97,7 @@ export function StepKeywordInput() {
                 value={localKeyword}
                 onChange={(e) => setLocalKeyword(e.target.value)}
                 onKeyDown={handleKeyPress}
-                placeholder="例: サステナブル、AI、健康管理、教育..."
+                placeholder="例: サステナブル、ダイエット、属人化、健康管理、教育..."
                 className="text-lg py-6 px-4 border-2 rounded-xl shadow-sm focus:shadow-md transition-all duration-300"
                 disabled={generatePersonasMutation.isPending}
               />
