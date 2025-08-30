@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Package, Sparkles } from "lucide-react";
+import { Package, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
-import { useGenerateProductNames } from "@/hooks/useApiMutations";
+import { useGenerateProductNames, useGenerateProductDetails } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { ProductDetails } from "@/lib/types";
 import { WorkflowHeader, WorkflowNavigation } from "./shared";
@@ -34,6 +34,7 @@ export function StepDetailsInput() {
   } = useWorkflowStore();
 
   const generateProductNamesMutation = useGenerateProductNames();
+  const generateProductDetailsMutation = useGenerateProductDetails();
 
   const [localDetails, setLocalDetails] =
     useState<ProductDetails>(productDetails);
@@ -49,6 +50,31 @@ export function StepDetailsInput() {
     localDetails.category.trim() &&
     localDetails.feature.trim() &&
     localDetails.brandImage.trim();
+
+  const handleAIGenerate = useCallback(async () => {
+    if (!selectedPersona || !selectedBusinessIdea) {
+      setError("ペルソナまたはビジネスアイデアが選択されていません");
+      return;
+    }
+
+    try {
+      setError(null);
+      const generatedDetails = await generateProductDetailsMutation.mutateAsync({
+        persona: selectedPersona,
+        businessIdea: selectedBusinessIdea,
+      });
+      
+      if (generatedDetails) {
+        setLocalDetails(generatedDetails);
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "商品詳細の生成に失敗しました"
+      );
+    }
+  }, [selectedPersona, selectedBusinessIdea, setError, generateProductDetailsMutation]);
 
   const handleNext = useCallback(async () => {
     if (!isFormValid) return;
@@ -95,13 +121,36 @@ export function StepDetailsInput() {
 
       <Card className="shadow-xl border-0 bg-gradient-to-br from-white via-purple-50/20 to-blue-50/20 mx-2 sm:mx-0">
         <CardHeader className="pb-4 sm:pb-6">
-          <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
-            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-            <span>商品・サービス詳細情報</span>
-          </CardTitle>
-          <CardDescription className="text-sm sm:text-base">
-            以下の3つの項目をすべて入力してください
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                <span>商品・サービス詳細情報</span>
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base mt-2">
+                以下の3つの項目をすべて入力してください
+              </CardDescription>
+            </div>
+            <Button
+              onClick={handleAIGenerate}
+              disabled={generateProductDetailsMutation.isPending || !selectedPersona || !selectedBusinessIdea}
+              variant="outline"
+              size="sm"
+              className="ml-4 shrink-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
+            >
+              {generateProductDetailsMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  生成中...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  AIにおまかせ
+                </>
+              )}
+            </Button>
+          </div>
         </CardHeader>
 
         <CardContent
@@ -110,8 +159,8 @@ export function StepDetailsInput() {
         >
           <RetryableErrorDisplay
             error={error}
-            onRetry={handleNext}
-            retryLabel="プロダクト名を再生成"
+            onRetry={generateProductDetailsMutation.error ? handleAIGenerate : handleNext}
+            retryLabel={generateProductDetailsMutation.error ? "商品詳細を再生成" : "プロダクト名を再生成"}
           />
 
           <motion.div

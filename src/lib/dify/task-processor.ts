@@ -6,9 +6,11 @@ import {
   DifyBusinessIdeaRequest,
   DifyProductNameRequest,
   DifyCanvasRequest,
+  DifyProductDetailsRequest,
   DifyPersonaResponse,
   DifyBusinessIdeaResponse,
   DifyProductNameResponse,
+  DifyProductDetailsResponse,
   LeanCanvasData,
   Persona,
   BusinessIdea,
@@ -171,6 +173,45 @@ export class ProductNameTaskProcessor extends TaskProcessor<
 
 }
 
+export class ProductDetailsTaskProcessor extends TaskProcessor<
+  DifyProductDetailsRequest,
+  DifyProductDetailsResponse
+> {
+  validateRequest(body: any): body is DifyProductDetailsRequest {
+    return (
+      body &&
+      body.persona &&
+      typeof body.persona === "object" &&
+      body.business_idea &&
+      typeof body.business_idea === "object"
+    );
+  }
+
+  buildDifyRequest(request: DifyProductDetailsRequest): DifyRequest {
+    return {
+      inputs: {
+        persona: JSON.stringify(request.persona),
+        business_idea: JSON.stringify(request.business_idea),
+      },
+      query: `以下の情報に基づいて商品・サービスの詳細を生成してください。JSON形式で {category: "", feature: "", brandImage: ""} として返してください。`,
+      task: "generate_product_details",
+    };
+  }
+
+  getTaskName(): string {
+    return "generate_product_details";
+  }
+
+  getValidationErrorMessage(): string {
+    return "ペルソナとビジネスアイデアが必要です";
+  }
+
+  formatResponse(normalizedData: any): DifyProductDetailsResponse {
+    return normalizedData as DifyProductDetailsResponse;
+  }
+
+}
+
 export class CanvasTaskProcessor extends TaskProcessor<
   DifyCanvasRequest,
   LeanCanvasData
@@ -225,6 +266,8 @@ export class TaskProcessorFactory {
         return new BusinessIdeaTaskProcessor(difyClient);
       case "productname":
         return new ProductNameTaskProcessor(difyClient);
+      case "generate_product_details":
+        return new ProductDetailsTaskProcessor(difyClient);
       case "canvas":
         return new CanvasTaskProcessor(difyClient);
       default:

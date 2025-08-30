@@ -5,6 +5,7 @@ import {
   DifyPersonaResponse,
   DifyBusinessIdeaResponse,
   DifyProductNameResponse,
+  DifyProductDetailsResponse,
   LeanCanvasData,
   ApiResponse,
   CreativityLevel,
@@ -74,6 +75,37 @@ export function useGenerateBusinessIdeas() {
         ['businessIdeas', variables.persona.id, variables.creativityLevel], 
         data
       );
+    },
+  });
+}
+
+// 商品詳細生成のミューテーション
+export function useGenerateProductDetails() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      persona, 
+      businessIdea 
+    }: {
+      persona: Persona;
+      businessIdea: BusinessIdea;
+    }) => {
+      const result = await callDifyApi<DifyProductDetailsResponse>({
+        task: "generate_product_details",
+        persona,
+        business_idea: businessIdea,
+      });
+      return result.data || null;
+    },
+    onSuccess: (data, variables) => {
+      // 成功時にキャッシュに保存
+      const cacheKey = [
+        'productDetails', 
+        variables.persona.id, 
+        variables.businessIdea.id
+      ];
+      queryClient.setQueryData(cacheKey, data);
     },
   });
 }

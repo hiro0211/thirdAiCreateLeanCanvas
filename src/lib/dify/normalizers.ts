@@ -1,4 +1,4 @@
-import { Persona, BusinessIdea, ProductName, LeanCanvasData } from "../types";
+import { Persona, BusinessIdea, ProductName, LeanCanvasData, DifyProductDetailsResponse } from "../types";
 
 export abstract class DataNormalizer<TInput, TOutput> {
   abstract normalize(data: any): TOutput;
@@ -187,6 +187,32 @@ export class ProductNameNormalizer extends DataNormalizer<any, ProductName[]> {
   }
 }
 
+export class ProductDetailsNormalizer extends DataNormalizer<any, DifyProductDetailsResponse> {
+  private extractField(data: any, fieldName: keyof DifyProductDetailsResponse): string {
+    const possibleKeys = [fieldName, `product_${fieldName}`, `service_${fieldName}`];
+    
+    for (const key of possibleKeys) {
+      if (data[key] && typeof data[key] === "string") {
+        return data[key];
+      }
+    }
+    
+    return "";
+  }
+
+  normalize(data: any): DifyProductDetailsResponse {
+    return {
+      category: this.extractField(data, "category"),
+      feature: this.extractField(data, "feature"),
+      brandImage: this.extractField(data, "brandImage"),
+    };
+  }
+
+  validate(data: DifyProductDetailsResponse): boolean {
+    return !!(data.category && data.feature && data.brandImage);
+  }
+}
+
 export class CanvasNormalizer extends DataNormalizer<any, LeanCanvasData> {
   private extractCanvasField(data: any, possibleKeys: string[]): string[] {
     for (const key of possibleKeys) {
@@ -252,6 +278,8 @@ export class NormalizerFactory {
         return new BusinessIdeaNormalizer();
       case "productname":
         return new ProductNameNormalizer();
+      case "generate_product_details":
+        return new ProductDetailsNormalizer();
       case "canvas":
         return new CanvasNormalizer();
       default:

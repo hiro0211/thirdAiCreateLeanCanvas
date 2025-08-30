@@ -74,6 +74,18 @@ export interface DifyCanvasRequest {
   product_name: ProductName;
 }
 
+export interface DifyProductDetailsRequest {
+  task: "generate_product_details";
+  persona: Persona;
+  business_idea: BusinessIdea;
+}
+
+export interface DifyProductDetailsResponse {
+  category: string;
+  feature: string;
+  brandImage: string;
+}
+
 // 製品詳細の型
 export interface ProductDetails {
   category: string;
