@@ -2,6 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+/* レスポンシブ対応のベーススタイル */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh; /* 動的ビューポート高 */
+  }
+}
+
+/* スマートフォン向けの最適化 */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 縦長画面での最適化 */
+  @media (max-width: 640px) and (orientation: portrait) {
+    .mobile-optimized {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+  }
+
+  /* 横長画面での最適化 */
+  @media (max-width: 640px) and (orientation: landscape) {
+    .mobile-landscape-optimized {
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

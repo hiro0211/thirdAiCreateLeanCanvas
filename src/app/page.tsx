@@ -9,45 +9,47 @@ import { TutorialGuide } from "@/components/tutorial/TutorialGuide";
 import { useWorkflowStore } from "@/stores/workflow-store";
 
 // 動的インポートでコード分割を実現
-const StepKeywordInput = lazy(() => 
-  import("@/components/workflow/StepKeywordInput").then(module => ({ 
-    default: module.StepKeywordInput 
+const StepKeywordInput = lazy(() =>
+  import("@/components/workflow/StepKeywordInput").then((module) => ({
+    default: module.StepKeywordInput,
   }))
 );
 
-const StepPersonaSelection = lazy(() => 
-  import("@/components/workflow/StepPersonaSelection").then(module => ({ 
-    default: module.StepPersonaSelection 
+const StepPersonaSelection = lazy(() =>
+  import("@/components/workflow/StepPersonaSelection").then((module) => ({
+    default: module.StepPersonaSelection,
   }))
 );
 
-const StepCreativityLevelSelection = lazy(() => 
-  import("@/components/workflow/StepCreativityLevelSelection").then(module => ({ 
-    default: module.StepCreativityLevelSelection 
+const StepCreativityLevelSelection = lazy(() =>
+  import("@/components/workflow/StepCreativityLevelSelection").then(
+    (module) => ({
+      default: module.StepCreativityLevelSelection,
+    })
+  )
+);
+
+const StepBusinessIdeaSelection = lazy(() =>
+  import("@/components/workflow/StepBusinessIdeaSelection").then((module) => ({
+    default: module.StepBusinessIdeaSelection,
   }))
 );
 
-const StepBusinessIdeaSelection = lazy(() => 
-  import("@/components/workflow/StepBusinessIdeaSelection").then(module => ({ 
-    default: module.StepBusinessIdeaSelection 
+const StepDetailsInput = lazy(() =>
+  import("@/components/workflow/StepDetailsInput").then((module) => ({
+    default: module.StepDetailsInput,
   }))
 );
 
-const StepDetailsInput = lazy(() => 
-  import("@/components/workflow/StepDetailsInput").then(module => ({ 
-    default: module.StepDetailsInput 
+const StepProductNameSelection = lazy(() =>
+  import("@/components/workflow/StepProductNameSelection").then((module) => ({
+    default: module.StepProductNameSelection,
   }))
 );
 
-const StepProductNameSelection = lazy(() => 
-  import("@/components/workflow/StepProductNameSelection").then(module => ({ 
-    default: module.StepProductNameSelection 
-  }))
-);
-
-const StepLeanCanvasDisplay = lazy(() => 
-  import("@/components/workflow/StepLeanCanvasDisplay").then(module => ({ 
-    default: module.StepLeanCanvasDisplay 
+const StepLeanCanvasDisplay = lazy(() =>
+  import("@/components/workflow/StepLeanCanvasDisplay").then((module) => ({
+    default: module.StepLeanCanvasDisplay,
   }))
 );
 
@@ -81,12 +83,12 @@ export default function HomePage() {
 
   return (
     <TutorialProvider>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 dark:from-slate-900 dark:via-blue-900/30 dark:to-purple-900/30">
+      <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 dark:from-slate-900 dark:via-blue-900/30 dark:to-purple-900/30 touch-manipulation tap-highlight-none">
         <Header />
 
-        <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-full overflow-hidden">
+        <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-6 max-w-full overflow-hidden mobile-optimized mobile-landscape-optimized">
           {/* Progress Stepper */}
-          <div className="no-print">
+          <div className="no-print mb-2 sm:mb-4 lg:mb-6">
             <WorkflowStepper currentStep={currentStep} />
           </div>
 
@@ -98,7 +100,7 @@ export default function HomePage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="mt-4 sm:mt-8"
+              className="px-1 sm:px-2"
             >
               <Suspense fallback={<StepLoadingFallback />}>
                 <CurrentStepComponent />
@@ -149,18 +151,21 @@ export default function HomePage() {
         </div>
 
         {/* Footer */}
-        <footer className="no-print border-t bg-background/80 backdrop-blur-sm">
-          <div className="container mx-auto px-4 py-4 sm:py-6">
-            <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
-              <div className="text-center md:text-left">
+        <footer className="no-print border-t bg-background/80 backdrop-blur-sm mt-8">
+          <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+            <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0 text-center sm:text-left">
+              <div>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  © 2025 AI Lean Canvas Creator. Powered by{" "}
-                  <span className="font-semibold bg-gradient-primary bg-clip-text text-transparent">
-                    Dify AI
+                  © 2025 AI Lean Canvas Creator.{" "}
+                  <span className="block sm:inline">
+                    Powered by{" "}
+                    <span className="font-semibold bg-gradient-primary bg-clip-text text-transparent">
+                      Dify AI
+                    </span>
                   </span>
                 </p>
               </div>
-              <div className="flex items-center space-x-4 text-xs sm:text-sm text-muted-foreground">
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 <span>Made with ❤️ for entrepreneurs</span>
               </div>
             </div>

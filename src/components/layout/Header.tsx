@@ -28,13 +28,11 @@ export function Header() {
       transition={{ duration: 0.5 }}
       className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
-      <div className="container flex h-14 sm:h-16 items-center justify-between px-4">
+      <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
         {/* Logo and Title */}
-        <div
-          className="flex items-center space-x-2 sm:space-x-3 transition-transform duration-200 ease-out hover:scale-105"
-        >
+        <div className="flex items-center space-x-2 sm:space-x-3 transition-transform duration-200 ease-out hover:scale-105 min-w-0 flex-1">
           <motion.div
-            className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-full flex items-center justify-center"
+            className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0"
             animate={{
               rotate: [0, 360],
             }}
@@ -46,8 +44,8 @@ export function Header() {
           >
             <Sparkles className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </motion.div>
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg lg:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
               AI Lean Canvas
             </h1>
             <p className="text-xs text-muted-foreground hidden sm:block">
@@ -58,7 +56,7 @@ export function Header() {
 
         {/* Actions */}
         <div
-          className="flex items-center space-x-1 sm:space-x-2"
+          className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0"
           data-tutorial="header-actions"
         >
           <div className="transition-all duration-200 ease-out hover:scale-105 active:scale-95">
@@ -69,7 +67,7 @@ export function Header() {
               className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border-blue-200 dark:border-blue-800 h-8 sm:h-9 px-2 sm:px-3"
             >
               <HelpCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <span className="hidden md:inline text-blue-600 dark:text-blue-400 text-xs sm:text-sm">
+              <span className="hidden lg:inline text-blue-600 dark:text-blue-400 text-xs sm:text-sm">
                 チュートリアル
               </span>
             </Button>
@@ -83,7 +81,7 @@ export function Header() {
                 className="flex items-center space-x-1 sm:space-x-2 h-8 sm:h-9 px-2 sm:px-3"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span className="hidden md:inline text-xs sm:text-sm">
+                <span className="hidden lg:inline text-xs sm:text-sm">
                   リセット
                 </span>
               </Button>
