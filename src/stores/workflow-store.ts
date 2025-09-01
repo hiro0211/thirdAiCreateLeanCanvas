@@ -13,8 +13,6 @@ import {
 } from "@/lib/types";
 import {
   ERROR_MESSAGES,
-  WORKFLOW_STEPS,
-  TUTORIAL_MESSAGES,
 } from "@/lib/constants/messages";
 
 interface WorkflowState {

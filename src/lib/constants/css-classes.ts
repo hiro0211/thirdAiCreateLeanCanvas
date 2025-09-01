@@ -26,20 +26,20 @@ export const HEADER_CLASSES = {
   PRODUCT_NAME_VALUE: "text-indigo-700",
 } as const;
 
-// キャンバスブロック
+// キャンバスブロック - 可読性重視のデザイン
 export const CANVAS_BLOCK_CLASSES = {
   CONTAINER:
-    "bg-gradient-to-br border-2 p-3 flex flex-col rounded-lg shadow-sm hover:shadow-md transition-all duration-300",
-  HEADER: "flex items-center mb-3 flex-shrink-0",
+    "bg-gradient-to-br border-2 p-4 flex flex-col rounded-xl shadow-sm hover:shadow-md transition-all duration-300",
+  HEADER: "flex items-center mb-4 flex-shrink-0",
   NUMBER_BADGE:
-    "w-8 h-8 text-white text-sm font-bold rounded-full flex items-center justify-center mr-3 shadow-md",
+    "w-8 h-8 text-white text-sm font-bold rounded-full flex items-center justify-center mr-3 shadow-sm",
   TITLE_CONTAINER: "flex-1",
-  TITLE: "font-bold text-sm text-gray-800 mb-1",
-  ICON: "text-lg",
-  CONTENT_CONTAINER: "flex-1 overflow-y-auto space-y-2",
+  TITLE: "font-semibold text-base text-gray-900 dark:text-gray-100 mb-1",
+  ICON: "text-lg opacity-70",
+  CONTENT_CONTAINER: "flex-1 overflow-y-auto space-y-3",
   CONTENT_ITEM:
-    "bg-white/60 backdrop-blur-sm p-2 rounded-md border border-white/40 hover:bg-white/80 transition-all duration-200",
-  CONTENT_TEXT: "text-xs text-gray-700 leading-relaxed",
+    "bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-all duration-200",
+  CONTENT_TEXT: "text-sm text-gray-800 dark:text-gray-200 leading-relaxed",
 } as const;
 
 // レイアウトグリッド

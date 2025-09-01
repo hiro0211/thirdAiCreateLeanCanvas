@@ -76,7 +76,7 @@ export function StepLeanCanvasDisplay() {
     );
   }
 
-  // モバイル用カードコンポーネント
+  // モバイル用カードコンポーネント - 可読性重視デザイン
   const MobileCanvasCard = ({
     number,
     title,
@@ -90,31 +90,25 @@ export function StepLeanCanvasDisplay() {
 
     return (
       <motion.div
-        className="w-full h-full bg-white dark:bg-gray-800 rounded-2xl border-2 shadow-xl overflow-hidden"
-        style={{ borderColor: colors.border.replace("border-", "") }}
+        className="w-full h-full bg-white dark:bg-gray-800 rounded-2xl border border-gray-300 dark:border-gray-600 shadow-lg overflow-hidden"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.3 }}
       >
-        {/* カードヘッダー */}
-        <div
-          className={`p-6 bg-gradient-to-r ${colors.bg} border-b-2`}
-          style={{ borderBottomColor: colors.border.replace("border-", "") }}
-        >
+        {/* カードヘッダー - シンプルで読みやすく */}
+        <div className="p-6 bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-600">
           <div className="flex items-center space-x-4">
-            <div
-              className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${colors.accent}`}
-            >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${colors.accent}`}>
               {number}
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white leading-tight">
                 {title}
               </h2>
               <div className="flex items-center space-x-2 mt-1">
-                <span className="text-2xl">{colors.icon}</span>
-                <span className="text-sm text-gray-600 dark:text-gray-300">
+                <span className="text-xl opacity-60">{colors.icon}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   ブロック {number}/9
                 </span>
               </div>
@@ -122,7 +116,7 @@ export function StepLeanCanvasDisplay() {
           </div>
         </div>
 
-        {/* カードコンテンツ */}
+        {/* カードコンテンツ - 高コントラスト */}
         <div className="p-6 h-full overflow-y-auto">
           <div className="space-y-4">
             {content.map((item, index) => (
@@ -131,14 +125,12 @@ export function StepLeanCanvasDisplay() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="flex items-start space-x-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl"
+                className="flex items-start space-x-3 p-4 bg-gray-50 dark:bg-gray-750 rounded-lg border border-gray-200 dark:border-gray-600"
               >
-                <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-sm font-bold ${colors.accent} flex-shrink-0 mt-0.5`}
-                >
+                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
                   {index + 1}
                 </div>
-                <p className="text-gray-800 dark:text-gray-200 leading-relaxed text-base">
+                <p className="text-gray-900 dark:text-gray-100 leading-relaxed text-base font-medium">
                   {item}
                 </p>
               </motion.div>
@@ -443,27 +435,24 @@ export function StepLeanCanvasDisplay() {
               return (
                 <div
                   key={block.id}
-                  className="bg-white dark:bg-gray-800 rounded-xl border-2 shadow-sm p-4"
-                  style={{ borderColor: colors.border.replace("border-", "") }}
+                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-gray-600 shadow-sm p-5"
                 >
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${colors.accent}`}
-                    >
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${colors.accent}`}>
                       {block.id}
                     </div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-base flex-1">
                       {title}
                     </h3>
-                    <span className="text-lg">{colors.icon}</span>
+                    <span className="text-lg opacity-60">{colors.icon}</span>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {content.map((item, index) => (
                       <p
                         key={index}
-                        className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+                        className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed pl-3 border-l-3 border-blue-200 dark:border-blue-700"
                       >
-                        • {item}
+                        {item}
                       </p>
                     ))}
                   </div>
