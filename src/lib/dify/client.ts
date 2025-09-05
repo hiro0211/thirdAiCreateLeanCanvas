@@ -331,10 +331,21 @@ export class DifyApiClient {
       conversation_id: "",
     };
 
+    // 🔍 デバッグ: リクエストボディの詳細をログ出力
+    console.log("🚀 [DEBUG] Dify Streaming API Request Details:");
+    console.log("📍 Endpoint:", apiEndpoint);
+    console.log("📦 Request Body:", JSON.stringify(requestBody, null, 2));
+    console.log("🔑 API Key Present:", !!this.config.apiKey);
+    console.log(
+      "🔑 API Key Preview:",
+      this.config.apiKey ? `${this.config.apiKey.substring(0, 10)}...` : "None"
+    );
+
     this.logger.info(`Making streaming API request to ${apiEndpoint}`, {
       task: request.task,
       inputKeys: Object.keys(request.inputs),
       hasApiKey: !!this.config.apiKey,
+      requestBody: requestBody,
     });
 
     try {
@@ -348,8 +359,27 @@ export class DifyApiClient {
         signal: AbortSignal.timeout(ENV_CONFIG.API_TIMEOUT),
       });
 
+      // 🔍 デバッグ: レスポンスヘッダーの詳細をログ出力
+      console.log("📥 [DEBUG] Dify API Response Details:");
+      console.log("📊 Status:", response.status, response.statusText);
+      console.log("📋 Headers:");
+      response.headers.forEach((value, key) => {
+        console.log(`  ${key}: ${value}`);
+      });
+      console.log("🌊 Response Body Type:", response.body?.constructor.name);
+      console.log(
+        "🔄 Is Streaming:",
+        response.headers.get("content-type")?.includes("text/event-stream")
+      );
+
       if (!response.ok) {
         const responseText = await response.text();
+
+        // 🔍 デバッグ: エラーレスポンスの詳細をログ出力
+        console.error("❌ [DEBUG] Dify API Error Response:");
+        console.error("📊 Status:", response.status, response.statusText);
+        console.error("📝 Response Text:", responseText);
+
         const errorId = this.logger.error(
           new Error(`Streaming API request failed: ${response.status}`),
           {
@@ -358,9 +388,7 @@ export class DifyApiClient {
             endpoint: apiEndpoint,
             task: request.task,
             responseLength: responseText.length,
-            ...(process.env.NODE_ENV === "development" && {
-              responseBody: responseText,
-            }),
+            responseBody: responseText,
           }
         );
         throw new Error(
@@ -368,9 +396,25 @@ export class DifyApiClient {
         );
       }
 
+      // 🔍 デバッグ: 成功レスポンスの詳細をログ出力
+      console.log("✅ [DEBUG] Dify API Success Response:");
+      console.log("📊 Status:", response.status);
+      console.log("📋 Content-Type:", response.headers.get("content-type"));
+      console.log("🌊 Stream Available:", !!response.body);
+      console.log(
+        "🔄 Response Mode Detected:",
+        response.headers.get("content-type")?.includes("text/event-stream")
+          ? "STREAMING"
+          : "BLOCKING"
+      );
+
       this.logger.info("Streaming API request initiated successfully", {
         task: request.task,
         hasBody: !!response.body,
+        contentType: response.headers.get("content-type"),
+        isStreaming: response.headers
+          .get("content-type")
+          ?.includes("text/event-stream"),
       });
 
       return response;

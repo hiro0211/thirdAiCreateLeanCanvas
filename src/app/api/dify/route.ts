@@ -21,6 +21,10 @@ async function handlePersonaStreaming(
   logger: Logger
 ) {
   try {
+    // 🔍 デバッグ: リクエストボディの詳細をログ出力
+    console.log("🎯 [DEBUG] API Route - Persona Streaming Request:");
+    console.log("📦 Request Body:", JSON.stringify(body, null, 2));
+
     // リクエストバリデーション
     if (
       !body.keyword ||
@@ -38,12 +42,86 @@ async function handlePersonaStreaming(
       task: "persona",
     };
 
+    // 🔍 デバッグ: Difyリクエストの詳細をログ出力
+    console.log("🎯 [DEBUG] API Route - Dify Request Details:");
+    console.log("📦 Dify Request:", JSON.stringify(difyRequest, null, 2));
+
     logger.info("Initiating persona streaming", {
       keyword: body.keyword,
+      difyRequest: difyRequest,
     });
 
     // Difyクライアントからストリーミングレスポンスを取得
     const difyResponse = await difyClient.callStreamingApi(difyRequest);
+
+    // 🔍 デバッグ: Difyレスポンスの詳細をログ出力
+    console.log("📥 [DEBUG] API Route - Dify Response Details:");
+    console.log("📊 Status:", difyResponse.status, difyResponse.statusText);
+    console.log("📋 Response Headers:");
+    difyResponse.headers.forEach((value, key) => {
+      console.log(`  ${key}: ${value}`);
+    });
+    console.log("🌊 Response Body Type:", difyResponse.body?.constructor.name);
+    console.log("🔄 Content-Type:", difyResponse.headers.get("content-type"));
+    console.log(
+      "🔄 Is Streaming Response:",
+      difyResponse.headers.get("content-type")?.includes("text/event-stream")
+    );
+
+    // ストリーミングかブロッキングかを判定
+    const isStreamingResponse = difyResponse.headers
+      .get("content-type")
+      ?.includes("text/event-stream");
+
+    if (!isStreamingResponse) {
+      console.warn(
+        "⚠️ [DEBUG] API Route - Dify returned non-streaming response!"
+      );
+      console.warn("📋 Expected: text/event-stream");
+      console.warn("📋 Actual:", difyResponse.headers.get("content-type"));
+
+      // ブロッキングレスポンスの場合、内容を読み取ってログ出力
+      const responseText = await difyResponse.text();
+      console.log("📝 [DEBUG] Non-streaming Response Body:", responseText);
+
+      // 新しいレスポンスを作成してストリーミング形式に変換
+      const stream = new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                event: "message",
+                answer: responseText,
+              })}\n\n`
+            )
+          );
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                event: "message_end",
+              })}\n\n`
+            )
+          );
+          controller.close();
+        },
+      });
+
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "text/event-stream; charset=utf-8",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+      });
+    }
+
+    console.log(
+      "✅ [DEBUG] API Route - Streaming response detected, proxying..."
+    );
 
     // Difyからのストリームをそのままクライアントにプロキシ
     return new Response(difyResponse.body, {
