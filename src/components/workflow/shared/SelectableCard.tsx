@@ -45,24 +45,23 @@ const SelectableCardComponent = <T,>({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{
-        duration: 0.4,
-        delay: index * animationDelay,
-        type: "spring",
-        stiffness: 100
+        duration: 0.3,
+        delay: Math.min(index * animationDelay, 0.8),
+        ease: "easeOut"
       }}
       whileHover={{
-        y: -8,
-        transition: { duration: 0.2 }
+        y: -4,
+        transition: { duration: 0.15 }
       }}
       whileTap={{ scale: 0.98 }}
-      className={cn("transition-transform duration-200 ease-out", className)}
+      className={cn("transition-transform duration-150 ease-out optimized-transform", className)}
     >
       <Card
         className={cn(
-          "cursor-pointer relative overflow-hidden h-full border-2 transition-all duration-300 hover:shadow-xl",
+          "cursor-pointer relative overflow-hidden h-full border-2 transition-all duration-200 hover:shadow-lg optimized-card",
           isSelected && showGlow ? SELECTION_STYLES.selected : SELECTION_STYLES.unselected,
           cardClassName
         )}

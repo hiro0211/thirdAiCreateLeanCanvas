@@ -11,14 +11,13 @@ import {
   TutorialState,
   TutorialStep,
 } from "@/lib/types";
-import {
-  ERROR_MESSAGES,
-} from "@/lib/constants/messages";
+import { ERROR_MESSAGES } from "@/lib/constants/messages";
 
 interface WorkflowState {
   // Current state
   currentStep: WorkflowStep;
   error: string | null;
+  streamingError: string | null;
 
   // Step data
   keyword: string;
@@ -36,6 +35,8 @@ interface WorkflowState {
   setKeyword: (keyword: string) => void;
   setCreativityLevel: (level: CreativityLevel) => void;
   setPersonas: (personas: Persona[]) => void;
+  addPersona: (persona: Persona) => void;
+  clearPersonas: () => void;
   selectPersona: (persona: Persona) => void;
   setBusinessIdeas: (ideas: BusinessIdea[]) => void;
   selectBusinessIdea: (idea: BusinessIdea) => void;
@@ -47,6 +48,7 @@ interface WorkflowState {
   goToPreviousStep: () => void;
   resetWorkflow: () => void;
   setError: (error: string | null) => void;
+  setStreamingError: (error: string | null) => void;
 }
 
 const INITIAL_PRODUCT_DETAILS: ProductDetails = {
@@ -69,6 +71,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   // Initial state
   currentStep: "keyword",
   error: null,
+  streamingError: null,
 
   keyword: "",
   creativityLevel: "realistic",
@@ -91,11 +94,23 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   },
 
   setPersonas: (personas) => {
-    set({ personas, error: null });
+    set({ personas, error: null, streamingError: null });
+  },
+
+  addPersona: (persona) => {
+    set((state) => ({
+      personas: [...state.personas, persona],
+      error: null,
+      streamingError: null,
+    }));
+  },
+
+  clearPersonas: () => {
+    set({ personas: [], error: null, streamingError: null });
   },
 
   selectPersona: (persona) => {
-    set({ selectedPersona: persona, error: null });
+    set({ selectedPersona: persona, error: null, streamingError: null });
   },
 
   setBusinessIdeas: (ideas) => {
@@ -142,6 +157,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set({
       currentStep: "keyword",
       error: null,
+      streamingError: null,
       keyword: "",
       creativityLevel: "realistic",
       personas: [],
@@ -157,6 +173,10 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
   setError: (error) => {
     set({ error });
+  },
+
+  setStreamingError: (error) => {
+    set({ streamingError: error });
   },
 }));
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo, memo } from "react";
 import { Users, User, Search, Lightbulb, Heart } from "lucide-react";
 import { useWorkflowStore } from "@/stores/workflow-store";
+import { usePersonaStream } from "@/hooks/usePersonaStream";
 import { Persona } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { WorkflowHeader, WorkflowNavigation, SelectableCard } from "./shared";
@@ -21,7 +22,91 @@ const PERSONA_STYLES = [
   { gradient: "from-rose-400 to-pink-400", icon: "👨‍🏭" },
 ];
 
-const getPersonaStyle = (index: number) => PERSONA_STYLES[index % PERSONA_STYLES.length];
+const getPersonaStyle = (index: number) =>
+  PERSONA_STYLES[index % PERSONA_STYLES.length];
+
+const PersonaCard = memo(
+  ({
+    persona,
+    index,
+    isSelected,
+    onSelect,
+  }: {
+    persona: Persona;
+    index: number;
+    isSelected: boolean;
+    onSelect: (persona: Persona) => void;
+  }) => {
+    const style = useMemo(() => getPersonaStyle(index), [index]);
+
+    return (
+      <SelectableCard
+        item={persona}
+        index={index}
+        isSelected={isSelected}
+        onSelect={onSelect}
+        renderHeader={(persona) => (
+          <div className="flex items-start space-x-4">
+            <motion.div
+              whileHover={{ rotate: [0, -10, 10, 0] }}
+              transition={{ duration: 0.5 }}
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br shadow-lg flex-shrink-0 ${style.gradient}`}
+            >
+              <span className="text-2xl">{style.icon}</span>
+            </motion.div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">
+                ペルソナ {persona.id}
+              </h3>
+            </div>
+          </div>
+        )}
+        renderContent={(persona) => (
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center space-x-2 mb-2">
+                <User className="w-4 h-4 text-gray-600" />
+                <span className="text-sm font-semibold text-gray-700">
+                  人物像
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                {persona.description}
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center space-x-2 mb-2">
+                <Search className="w-4 h-4 text-blue-600" />
+                <span className="text-xs font-semibold text-gray-700">
+                  顕在ニーズ
+                </span>
+              </div>
+              <p className="text-xs text-gray-700 bg-blue-50 p-2 rounded border border-blue-200">
+                {persona.explicit_needs}
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center space-x-2 mb-2">
+                <Lightbulb className="w-4 h-4 text-amber-600" />
+                <span className="text-xs font-semibold text-gray-700">
+                  潜在ニーズ
+                </span>
+              </div>
+              <p className="text-xs text-gray-700 bg-amber-50 p-2 rounded border border-amber-200">
+                {persona.implicit_needs}
+              </p>
+            </div>
+          </div>
+        )}
+        animationDelay={0.08}
+      />
+    );
+  }
+);
+
+PersonaCard.displayName = "PersonaCard";
 
 export function StepPersonaSelection() {
   const {
@@ -30,11 +115,19 @@ export function StepPersonaSelection() {
     selectPersona,
     goToNextStep,
     goToPreviousStep,
+    streamingError,
   } = useWorkflowStore();
 
-  const handlePersonaSelect = useCallback((persona: Persona) => {
-    selectPersona(persona);
-  }, [selectPersona]);
+  const { isLoading } = usePersonaStream();
+
+  const handlePersonaSelect = useCallback(
+    (persona: Persona) => {
+      selectPersona(persona);
+    },
+    [selectPersona]
+  );
+
+  const selectedPersonaId = selectedPersona?.id;
 
   const handleNext = useCallback(() => {
     if (!selectedPersona) return;
@@ -59,79 +152,78 @@ export function StepPersonaSelection() {
         className="mb-10"
       />
 
+      {/* ローディング状態とエラー表示 */}
+      {isLoading && personas.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center justify-center py-12"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="mb-4"
+          >
+            <Users className="w-12 h-12 text-blue-500" />
+          </motion.div>
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-2">
+            ペルソナを生成中...
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            AIが10個のペルソナを作成しています
+          </p>
+        </motion.div>
+      )}
+
+      {streamingError && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl"
+        >
+          <p className="text-red-700 dark:text-red-400 font-medium">
+            エラーが発生しました
+          </p>
+          <p className="text-red-600 dark:text-red-300 text-sm mt-1">
+            {streamingError}
+          </p>
+        </motion.div>
+      )}
+
       {/* ペルソナグリッド */}
-      <div
-        className={LAYOUT_PRESETS.GRID.RESPONSIVE_CARDS + " mb-10"}
-        data-tutorial="persona-cards"
-      >
-        {personas.map((persona, index) => {
-          const style = getPersonaStyle(index);
-          const isSelected = selectedPersona?.id === persona.id;
+      <AnimatePresence>
+        <div
+          className={LAYOUT_PRESETS.GRID.RESPONSIVE_CARDS + " mb-10"}
+          data-tutorial="persona-cards"
+        >
+          {personas.map((persona, index) => {
+            const isSelected = selectedPersonaId === persona.id;
 
-          return (
-            <SelectableCard
-              key={persona.id}
-              item={persona}
-              index={index}
-              isSelected={isSelected}
-              onSelect={handlePersonaSelect}
-              renderHeader={(persona) => (
-                <div className="flex items-start space-x-4">
-                  {/* アバター */}
-                  <motion.div
-                    whileHover={{ rotate: [0, -10, 10, 0] }}
-                    transition={{ duration: 0.5 }}
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br shadow-lg flex-shrink-0 ${style.gradient}`}
-                  >
-                    <span className="text-2xl">{style.icon}</span>
-                  </motion.div>
-
-                  {/* タイトル */}
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">
-                      ペルソナ {persona.id}
-                    </h3>
-                  </div>
-                </div>
-              )}
-              renderContent={(persona) => (
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <User className="w-4 h-4 text-gray-600" />
-                      <span className="text-sm font-semibold text-gray-700">人物像</span>
-                    </div>
-                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                      {persona.description}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Search className="w-4 h-4 text-blue-600" />
-                      <span className="text-xs font-semibold text-gray-700">顕在ニーズ</span>
-                    </div>
-                    <p className="text-xs text-gray-700 bg-blue-50 p-2 rounded border border-blue-200">
-                      {persona.explicit_needs}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Lightbulb className="w-4 h-4 text-amber-600" />
-                      <span className="text-xs font-semibold text-gray-700">潜在ニーズ</span>
-                    </div>
-                    <p className="text-xs text-gray-700 bg-amber-50 p-2 rounded border border-amber-200">
-                      {persona.implicit_needs}
-                    </p>
-                  </div>
-                </div>
-              )}
-              animationDelay={0.08}
-            />
-          );
-        })}
-      </div>
+            return (
+              <motion.div
+                key={persona.id}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                transition={{
+                  duration: 0.4,
+                  delay: index * 0.1,
+                  type: "spring",
+                  stiffness: 100,
+                }}
+                layout
+              >
+                <PersonaCard
+                  persona={persona}
+                  index={index}
+                  isSelected={isSelected}
+                  onSelect={handlePersonaSelect}
+                />
+              </motion.div>
+            );
+          })}
+        </div>
+      </AnimatePresence>
 
       {/* 選択されたペルソナのハイライト */}
       <AnimatePresence>
@@ -190,7 +282,7 @@ export function StepPersonaSelection() {
         onPrevious={goToPreviousStep}
         onNext={handleNext}
         isNextDisabled={!selectedPersona}
-        nextLabel="次へ進む"
+        nextLabel={isLoading ? "生成中..." : "次へ進む"}
         nextVariant="gradient"
       />
     </motion.div>

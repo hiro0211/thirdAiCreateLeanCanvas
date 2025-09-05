@@ -25,6 +25,23 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* パフォーマンス最適化のためのスタイル */
+  .optimized-transform {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  .optimized-card {
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  .gpu-accelerated {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+
   /* 縦長画面での最適化 */
   @media (max-width: 640px) and (orientation: portrait) {
     .mobile-optimized {

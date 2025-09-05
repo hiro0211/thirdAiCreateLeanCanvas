@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo, memo } from "react";
 import { Lightbulb, Target, Sparkles } from "lucide-react";
 import { useWorkflowStore } from "@/stores/workflow-store";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
@@ -24,6 +24,70 @@ const IDEA_STYLES = [
 
 const getIdeaStyle = (index: number) => IDEA_STYLES[index % IDEA_STYLES.length];
 
+const BusinessIdeaCard = memo(({ idea, index, isSelected, onSelect }: {
+  idea: BusinessIdea;
+  index: number;
+  isSelected: boolean;
+  onSelect: (idea: BusinessIdea) => void;
+}) => {
+  const style = useMemo(() => getIdeaStyle(index), [index]);
+  
+  return (
+    <SelectableCard
+      item={idea}
+      index={index}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      renderHeader={(idea) => (
+        <div className="flex items-start space-x-4">
+          <motion.div
+            whileHover={{ rotate: [0, -10, 10, 0] }}
+            transition={{ duration: 0.5 }}
+            className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br shadow-lg flex-shrink-0 ${style.gradient}`}
+          >
+            <span className="text-2xl">{style.icon}</span>
+          </motion.div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">
+              ビジネスアイデア
+            </h3>
+          </div>
+        </div>
+      )}
+      renderContent={(idea) => (
+        <div className="space-y-3">
+          <div>
+            <div className="flex items-center space-x-2 mb-2">
+              <Target className="w-4 h-4 text-gray-600" />
+              <span className="text-sm font-semibold text-gray-700">
+                コンセプト
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+              {idea.idea_text}
+            </p>
+          </div>
+
+          <div>
+            <div className="flex items-center space-x-2 mb-2">
+              <Lightbulb className="w-4 h-4 text-amber-600" />
+              <span className="text-xs font-semibold text-gray-700">
+                発想のヒント
+              </span>
+            </div>
+            <p className="text-xs text-gray-700 bg-amber-50 p-2 rounded border border-amber-200">
+              {idea.osborn_hint}
+            </p>
+          </div>
+        </div>
+      )}
+      animationDelay={0.08}
+    />
+  );
+});
+
+BusinessIdeaCard.displayName = "BusinessIdeaCard";
+
 export function StepBusinessIdeaSelection() {
   const {
     businessIdeas,
@@ -40,6 +104,8 @@ export function StepBusinessIdeaSelection() {
     },
     [selectBusinessIdea]
   );
+
+  const selectedBusinessIdeaId = selectedBusinessIdea?.id;
 
   const handleNext = useCallback(() => {
     if (!selectedBusinessIdea) return;
@@ -75,63 +141,15 @@ export function StepBusinessIdeaSelection() {
       {/* ビジネスアイデアグリッド */}
       <div className={LAYOUT_PRESETS.GRID.RESPONSIVE_CARDS + " mb-10"}>
         {businessIdeas.map((idea, index) => {
-          const style = getIdeaStyle(index);
-          const isSelected = selectedBusinessIdea?.id === idea.id;
+          const isSelected = selectedBusinessIdeaId === idea.id;
 
           return (
-            <SelectableCard
+            <BusinessIdeaCard
               key={idea.id}
-              item={idea}
+              idea={idea}
               index={index}
               isSelected={isSelected}
               onSelect={handleIdeaSelect}
-              renderHeader={(idea) => (
-                <div className="flex items-start space-x-4">
-                  {/* アイデアアイコン */}
-                  <motion.div
-                    whileHover={{ rotate: [0, -10, 10, 0] }}
-                    transition={{ duration: 0.5 }}
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br shadow-lg flex-shrink-0 ${style.gradient}`}
-                  >
-                    <span className="text-2xl">{style.icon}</span>
-                  </motion.div>
-
-                  {/* タイトル部分 */}
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">
-                      ビジネスアイデア
-                    </h3>
-                  </div>
-                </div>
-              )}
-              renderContent={(idea) => (
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Target className="w-4 h-4 text-gray-600" />
-                      <span className="text-sm font-semibold text-gray-700">
-                        コンセプト
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                      {idea.idea_text}
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Lightbulb className="w-4 h-4 text-amber-600" />
-                      <span className="text-xs font-semibold text-gray-700">
-                        発想のヒント
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-700 bg-amber-50 p-2 rounded border border-amber-200">
-                      {idea.osborn_hint}
-                    </p>
-                  </div>
-                </div>
-              )}
-              animationDelay={0.08}
             />
           );
         })}

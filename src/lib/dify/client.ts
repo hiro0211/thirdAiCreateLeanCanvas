@@ -1,6 +1,6 @@
-import { Logger } from '../utils/logger';
-import { ENV_CONFIG } from '../config/env-config';
-import { API_CONFIG } from '../constants/app-constants';
+import { Logger } from "../utils/logger";
+import { ENV_CONFIG } from "../config/env-config";
+import { API_CONFIG } from "../constants/app-constants";
 
 export interface DifyConfig {
   apiKey: string;
@@ -15,7 +15,7 @@ export interface DifyRequest {
 }
 
 export class DifyApiClient {
-  private logger = new Logger('DifyApiClient');
+  private logger = new Logger("DifyApiClient");
 
   constructor(private config: DifyConfig) {}
 
@@ -26,24 +26,39 @@ export class DifyApiClient {
     return this.callRealApi(request);
   }
 
+  async callStreamingApi(request: DifyRequest): Promise<Response> {
+    if (this.config.isDemoMode) {
+      return this.handleStreamingDemoMode(request);
+    }
+    return this.callRealStreamingApi(request);
+  }
+
   private async handleDemoMode(request: DifyRequest): Promise<any> {
-    this.logger.info('Using demo mode - mock data will be returned', {
+    this.logger.info("Using demo mode - mock data will be returned", {
       task: request.task,
       inputKeys: Object.keys(request.inputs),
     });
-    
+
     // Real API call simulation with delay
     await new Promise((resolve) =>
-      setTimeout(resolve, ENV_CONFIG.DEMO_MODE_MIN_DELAY + Math.random() * (ENV_CONFIG.DEMO_MODE_MAX_DELAY - ENV_CONFIG.DEMO_MODE_MIN_DELAY))
+      setTimeout(
+        resolve,
+        ENV_CONFIG.DEMO_MODE_MIN_DELAY +
+          Math.random() *
+            (ENV_CONFIG.DEMO_MODE_MAX_DELAY - ENV_CONFIG.DEMO_MODE_MIN_DELAY)
+      )
     );
-    
-    const { MockDataGenerator } = await import('./mock-generator');
-    return MockDataGenerator.generate(request.task || 'unknown', request.inputs);
+
+    const { MockDataGenerator } = await import("./mock-generator");
+    return MockDataGenerator.generate(
+      request.task || "unknown",
+      request.inputs
+    );
   }
 
   private async callRealApi(request: DifyRequest): Promise<any> {
     if (!this.config.apiKey || !this.config.apiUrl) {
-      throw new Error('Dify API configuration is missing');
+      throw new Error("Dify API configuration is missing");
     }
 
     // Dify chat application API endpoint
@@ -55,13 +70,13 @@ export class DifyApiClient {
         ...request.inputs,
       },
       query: request.query || `Please perform task: ${request.task}`,
-      response_mode: 'blocking',
+      response_mode: "blocking",
       user: API_CONFIG.DEFAULT_USER_ID,
-      conversation_id: '',
+      conversation_id: "",
     };
 
     // Development environment logging
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       this.logger.info(`Request for task: ${request.task}`, {
         endpoint: apiEndpoint,
         inputKeys: Object.keys(request.inputs),
@@ -76,9 +91,9 @@ export class DifyApiClient {
       });
 
       const response = await fetch(apiEndpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify(requestBody),
@@ -97,7 +112,7 @@ export class DifyApiClient {
             task: request.task,
             responseLength: responseText.length,
             // Only log response body in development
-            ...(process.env.NODE_ENV === 'development' && {
+            ...(process.env.NODE_ENV === "development" && {
               responseBody: responseText,
             }),
           }
@@ -110,7 +125,7 @@ export class DifyApiClient {
       let result;
       try {
         result = JSON.parse(responseText);
-        this.logger.info('API request successful', {
+        this.logger.info("API request successful", {
           task: request.task,
           responseType: typeof result,
           hasAnswer: !!result.answer,
@@ -124,9 +139,9 @@ export class DifyApiClient {
         throw new Error(`Failed to parse JSON response. Error ID: ${errorId}`);
       }
 
-      if (result.status === 'failed') {
+      if (result.status === "failed") {
         const errorId = this.logger.error(
-          new Error('Dify workflow execution failed'),
+          new Error("Dify workflow execution failed"),
           {
             task: request.task,
             difyError: result.error,
@@ -150,22 +165,234 @@ export class DifyApiClient {
       // Return direct JSON object response
       return result;
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        const errorId = this.logger.error(error, { 
-          task: request.task, 
-          timeout: 60000 
+      if (error instanceof Error && error.name === "AbortError") {
+        const errorId = this.logger.error(error, {
+          task: request.task,
+          timeout: 60000,
         });
         throw new Error(`Dify API request timed out. Error ID: ${errorId}`);
       }
 
       // Check if error is already logged
-      if (error instanceof Error && error.message.includes('Error ID:')) {
+      if (error instanceof Error && error.message.includes("Error ID:")) {
         throw error;
       }
 
       // Log unexpected errors
       const errorId = this.logger.error(error, { task: request.task });
       throw new Error(`Unexpected error occurred. Error ID: ${errorId}`);
+    }
+  }
+
+  private async handleStreamingDemoMode(
+    request: DifyRequest
+  ): Promise<Response> {
+    this.logger.info(
+      "Using streaming demo mode - mock SSE data will be returned",
+      {
+        task: request.task,
+        inputKeys: Object.keys(request.inputs),
+      }
+    );
+
+    // ペルソナ生成のモックストリーミングレスポンスを作成
+    if (request.task === "persona") {
+      return this.createMockPersonaStream(request);
+    }
+
+    // その他のタスクは通常のレスポンスを返す
+    const mockData = await this.handleDemoMode(request);
+    const stream = new ReadableStream({
+      start(controller) {
+        const encoder = new TextEncoder();
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({
+              event: "message",
+              answer: JSON.stringify(mockData),
+            })}\n\n`
+          )
+        );
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({
+              event: "message_end",
+            })}\n\n`
+          )
+        );
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  }
+
+  private async createMockPersonaStream(
+    request: DifyRequest
+  ): Promise<Response> {
+    const { MockDataGenerator } = await import("./mock-generator");
+    const mockData = MockDataGenerator.generate("persona", request.inputs);
+
+    const stream = new ReadableStream({
+      start(controller) {
+        const encoder = new TextEncoder();
+
+        // 各ペルソナを個別に送信
+        if (mockData.personas && Array.isArray(mockData.personas)) {
+          let personaIndex = 0;
+
+          const sendNextPersona = () => {
+            if (personaIndex < mockData.personas.length) {
+              const persona = mockData.personas[personaIndex];
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({
+                    event: "message",
+                    answer: JSON.stringify(persona),
+                  })}\n\n`
+                )
+              );
+
+              personaIndex++;
+
+              // 次のペルソナを500ms後に送信
+              if (personaIndex < mockData.personas.length) {
+                setTimeout(sendNextPersona, 500);
+              } else {
+                // 全てのペルソナを送信完了、終了イベントを送信
+                setTimeout(() => {
+                  controller.enqueue(
+                    encoder.encode(
+                      `data: ${JSON.stringify({
+                        event: "message_end",
+                      })}\n\n`
+                    )
+                  );
+                  controller.close();
+                }, 300);
+              }
+            }
+          };
+
+          // 最初のペルソナを送信開始
+          setTimeout(sendNextPersona, 100);
+        } else {
+          // フォールバック: 全データを一度に送信
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                event: "message",
+                answer: JSON.stringify(mockData),
+              })}\n\n`
+            )
+          );
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                event: "message_end",
+              })}\n\n`
+            )
+          );
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  }
+
+  private async callRealStreamingApi(request: DifyRequest): Promise<Response> {
+    if (!this.config.apiKey || !this.config.apiUrl) {
+      throw new Error("Dify API configuration is missing");
+    }
+
+    const apiEndpoint = `${this.config.apiUrl}${API_CONFIG.DIFY_ENDPOINT}`;
+
+    const requestBody = {
+      inputs: {
+        task: request.task,
+        ...request.inputs,
+      },
+      query: request.query || `Please perform task: ${request.task}`,
+      response_mode: "streaming", // ストリーミングモードに変更
+      user: API_CONFIG.DEFAULT_USER_ID,
+      conversation_id: "",
+    };
+
+    this.logger.info(`Making streaming API request to ${apiEndpoint}`, {
+      task: request.task,
+      inputKeys: Object.keys(request.inputs),
+      hasApiKey: !!this.config.apiKey,
+    });
+
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.apiKey}`,
+        },
+        body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(ENV_CONFIG.API_TIMEOUT),
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        const errorId = this.logger.error(
+          new Error(`Streaming API request failed: ${response.status}`),
+          {
+            status: response.status,
+            statusText: response.statusText,
+            endpoint: apiEndpoint,
+            task: request.task,
+            responseLength: responseText.length,
+            ...(process.env.NODE_ENV === "development" && {
+              responseBody: responseText,
+            }),
+          }
+        );
+        throw new Error(
+          `Dify streaming API error: ${response.status}. Error ID: ${errorId}`
+        );
+      }
+
+      this.logger.info("Streaming API request initiated successfully", {
+        task: request.task,
+        hasBody: !!response.body,
+      });
+
+      return response;
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        const errorId = this.logger.error(error, {
+          task: request.task,
+          timeout: ENV_CONFIG.API_TIMEOUT,
+        });
+        throw new Error(
+          `Dify streaming API request timed out. Error ID: ${errorId}`
+        );
+      }
+
+      if (error instanceof Error && error.message.includes("Error ID:")) {
+        throw error;
+      }
+
+      const errorId = this.logger.error(error, { task: request.task });
+      throw new Error(
+        `Unexpected streaming error occurred. Error ID: ${errorId}`
+      );
     }
   }
 }

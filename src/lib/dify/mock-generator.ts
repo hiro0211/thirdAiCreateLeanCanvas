@@ -8,7 +8,7 @@ export class MockDataGenerator {
     };
 
     const generator = generators[task as keyof typeof generators];
-    return generator ? generator() : { error: 'Unknown task' };
+    return generator ? generator() : { error: "Unknown task" };
   }
 }
 
@@ -19,91 +19,71 @@ class MockDataTemplates {
         id: 1,
         description:
           "40代の働く女性で、健康意識が高く、家族の健康管理も担当している。忙しい日常の中で効率的な健康管理方法を求めている。",
-        needs: {
-          explicit: "簡単で継続しやすい健康管理ツール",
-          implicit: "家族全体の健康状態を把握し、安心感を得たい",
-        },
+        explicit_needs: "簡単で継続しやすい健康管理ツール",
+        implicit_needs: "家族全体の健康状態を把握し、安心感を得たい",
       },
       {
         id: 2,
         description:
           "30代の会社員男性で、最近の健康診断で脂質異常症と診断された。仕事が忙しく、食生活が不規則になりがち。",
-        needs: {
-          explicit: "脂質異常症の改善方法と食事管理",
-          implicit: "将来の病気リスクを回避し、長く健康でいたい",
-        },
+        explicit_needs: "脂質異常症の改善方法と食事管理",
+        implicit_needs: "将来の病気リスクを回避し、長く健康でいたい",
       },
       {
         id: 3,
         description:
           "50代の自営業者で、長年の生活習慣により複数の健康問題を抱えている。本格的な健康改善に取り組みたいと考えている。",
-        needs: {
-          explicit: "包括的な健康改善プログラム",
-          implicit: "専門的なサポートと継続的なモチベーション維持",
-        },
+        explicit_needs: "包括的な健康改善プログラム",
+        implicit_needs: "専門的なサポートと継続的なモチベーション維持",
       },
       {
         id: 4,
         description:
           "20代の大学生で、将来の健康リスクを予防したいと考えている。情報収集が得意で、最新の健康トレンドに敏感。",
-        needs: {
-          explicit: "予防的な健康管理の知識と方法",
-          implicit: "同世代との差別化と将来への投資意識",
-        },
+        explicit_needs: "予防的な健康管理の知識と方法",
+        implicit_needs: "同世代との差別化と将来への投資意識",
       },
       {
         id: 5,
         description:
           "60代の退職者で、時間に余裕があるため健康管理に本格的に取り組みたい。医療費を抑えながら健康寿命を延ばしたい。",
-        needs: {
-          explicit: "年齢に適した健康管理プログラム",
-          implicit: "医療費削減と自立した生活の維持",
-        },
+        explicit_needs: "年齢に適した健康管理プログラム",
+        implicit_needs: "医療費削減と自立した生活の維持",
       },
       {
         id: 6,
         description:
           "35歳の子育て中の母親で、自分の健康管理が後回しになりがち。子供の健康も含めて家族全体の健康を効率的に管理したい。",
-        needs: {
-          explicit: "家族全体の健康管理ソリューション",
-          implicit: "自分自身の健康も大切にしたいという罪悪感の解消",
-        },
+        explicit_needs: "家族全体の健康管理ソリューション",
+        implicit_needs: "自分自身の健康も大切にしたいという罪悪感の解消",
       },
       {
         id: 7,
         description:
           "45歳の営業職で、外食が多く運動不足。ストレスも多い環境で、手軽に健康改善できる方法を探している。",
-        needs: {
-          explicit: "忙しい仕事の合間にできる健康管理",
-          implicit: "仕事のパフォーマンス向上と長期的なキャリア維持",
-        },
+        explicit_needs: "忙しい仕事の合間にできる健康管理",
+        implicit_needs: "仕事のパフォーマンス向上と長期的なキャリア維持",
       },
       {
         id: 8,
         description:
           "28歳のフリーランスデザイナー。座り仕事が多く、不規則な生活リズム。健康に投資することで仕事の質を向上させたい。",
-        needs: {
-          explicit: "デスクワーカー向けの健康ソリューション",
-          implicit: "創作活動のパフォーマンス向上と持続可能な働き方",
-        },
+        explicit_needs: "デスクワーカー向けの健康ソリューション",
+        implicit_needs: "創作活動のパフォーマンス向上と持続可能な働き方",
       },
       {
         id: 9,
         description:
           "52歳の管理職で、部下のマネジメントストレスと長時間労働で健康状態が悪化。リーダーシップを発揮するためにも健康改善が必要。",
-        needs: {
-          explicit: "ストレス管理と効率的な健康改善",
-          implicit: "チームのお手本となる健康的なライフスタイル",
-        },
+        explicit_needs: "ストレス管理と効率的な健康改善",
+        implicit_needs: "チームのお手本となる健康的なライフスタイル",
       },
       {
         id: 10,
         description:
           "38歳のシングルマザーで、時間とお金に制約がある中で自分と子供の健康を守りたい。コストパフォーマンスの高いソリューションを求めている。",
-        needs: {
-          explicit: "低コストで効果的な健康管理方法",
-          implicit: "子供の将来のためにも自分が健康でいたい",
-        },
+        explicit_needs: "低コストで効果的な健康管理方法",
+        implicit_needs: "子供の将来のためにも自分が健康でいたい",
       },
     ],
   };
@@ -228,8 +208,7 @@ class MockDataTemplates {
       {
         id: 6,
         name: "SmartHealth",
-        reason:
-          "スマート(Smart)な健康管理を表現し、AI技術の活用を強調",
+        reason: "スマート(Smart)な健康管理を表現し、AI技術の活用を強調",
         pros: "技術的先進性をアピール、覚えやすいシンプルな名前",
         cons: "スマートフォンアプリとの関連性が強すぎる印象",
       },
