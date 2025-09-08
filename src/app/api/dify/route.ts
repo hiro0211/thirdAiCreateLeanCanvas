@@ -144,62 +144,7 @@ async function handleStreamingRequest(
       "✅ [DEBUG] API Route - Streaming response detected, proxying..."
     );
 
-    // デバッグ用: ストリーミングデータの内容をログ出力
-    if (process.env.NODE_ENV === "development") {
-      const reader = difyResponse.body?.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      const debugStream = new ReadableStream({
-        start(controller) {
-          const pump = async () => {
-            while (true) {
-              const { done, value } = await reader!.read();
-
-              if (done) {
-                console.log("🏁 [DEBUG] Stream ended");
-                controller.close();
-                break;
-              }
-
-              const chunk = decoder.decode(value, { stream: true });
-              buffer += chunk;
-
-              console.log("📦 [DEBUG] Received chunk:", chunk);
-
-              // 行ごとに分析
-              const lines = buffer.split("\n");
-              buffer = lines.pop() || "";
-
-              for (const line of lines) {
-                if (line.trim()) {
-                  console.log("📝 [DEBUG] SSE Line:", line);
-                }
-              }
-
-              controller.enqueue(value);
-            }
-          };
-          pump().catch((err) => {
-            console.error("❌ [DEBUG] Stream error:", err);
-            controller.error(err);
-          });
-        },
-      });
-
-      return new Response(debugStream, {
-        headers: {
-          "Content-Type": "text/event-stream; charset=utf-8",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      });
-    }
-
-    // 本番環境では通常のプロキシ
+    // Difyからのストリームをそのままクライアントにプロキシ
     return new Response(difyResponse.body, {
       headers: {
         "Content-Type": "text/event-stream; charset=utf-8",

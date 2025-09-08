@@ -188,39 +188,19 @@ export function useGenerateLeanCanvas() {
 function parseSSEEvent(
   line: string
 ): { event: string; data?: any; answer?: any } | null {
-  console.log("🔍 [SSE PARSER] Parsing line:", line);
-
   if (line.startsWith("data: ")) {
     try {
       const jsonStr = line.slice(6); // "data: " を削除
-      console.log("📄 [SSE PARSER] JSON string:", jsonStr);
-
       const parsed = JSON.parse(jsonStr);
-      console.log("✅ [SSE PARSER] Parsed JSON:", parsed);
-
       return parsed;
     } catch (error) {
-      console.warn("⚠️ [SSE PARSER] Failed to parse JSON:", line, error);
-
-      // JSONパースに失敗した場合、生のデータとして返す
+      // JSONパースに失敗した場合は、イベントと生データを返す
       return {
         event: "message",
         answer: line.slice(6),
       };
     }
   }
-
-  // "event: " で始まる行の処理
-  if (line.startsWith("event: ")) {
-    const eventType = line.slice(7);
-    console.log("🎯 [SSE PARSER] Event type:", eventType);
-    return {
-      event: eventType,
-    };
-  }
-
-  // その他の行は無視
-  console.log("⏭️ [SSE PARSER] Ignoring line:", line);
   return null;
 }
 
@@ -268,89 +248,44 @@ export function useDifyStream() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let jsonStringAccumulator = ""; // JSON文字列を蓄積
 
       while (true) {
         const { done, value } = await reader.read();
+        if (done) break;
 
-        if (done) {
-          console.log("🏁 [FRONTEND DEBUG] Stream ended");
-          break;
-        }
-
-        // バイナリデータをテキストに変換
-        const chunk = decoder.decode(value, { stream: true });
-        buffer += chunk;
-
-        console.log("📦 [FRONTEND DEBUG] Received chunk:", chunk);
-
-        // 行ごとに処理
+        buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
-        buffer = lines.pop() || ""; // 最後の不完全な行を保持
+        buffer = lines.pop() || "";
 
         for (const line of lines) {
           if (line.trim() === "") continue;
 
-          console.log("📝 [FRONTEND DEBUG] Processing line:", line);
-
           const event = parseSSEEvent(line);
-          if (!event) {
-            console.warn(
-              "⚠️ [FRONTEND DEBUG] Failed to parse line as SSE:",
-              line
-            );
-            continue;
-          }
-
-          console.log("✅ [FRONTEND DEBUG] Parsed event:", event);
+          if (!event) continue;
 
           if (event.event === "error") {
             throw new Error(
-              event.error || "ストリーミング中にエラーが発生しました"
+              event.data?.error || "ストリーミング中にエラーが発生しました"
             );
           }
 
-          if (event.event === "message") {
+          if (event.event === "message" && typeof event.answer === "string") {
+            jsonStringAccumulator += event.answer;
             try {
-              // Difyからの応答をパース
-              const messageData =
-                typeof event.answer === "string"
-                  ? JSON.parse(event.answer)
-                  : event.answer;
-
-              setData((prevData: any) => {
-                // 初回データの場合
-                if (!prevData) {
-                  return messageData;
-                }
-
-                // データを累積更新（リーンキャンバスの場合は上書き、配列の場合は追加）
-                if (Array.isArray(messageData)) {
-                  return Array.isArray(prevData)
-                    ? [...prevData, ...messageData]
-                    : messageData;
-                } else {
-                  return { ...prevData, ...messageData };
-                }
-              });
-            } catch (parseError) {
-              console.warn(
-                "Failed to parse message data:",
-                event.answer,
-                parseError
-              );
-              // パースに失敗した場合はそのまま設定
-              setData(event.answer);
+              const parsedData = JSON.parse(jsonStringAccumulator);
+              setData(parsedData);
+            } catch (e) {
+              console.log("Parsing partial JSON... waiting for more chunks.");
             }
           }
 
           if (event.event === "message_end") {
-            // ストリーミング完了
-            break;
+            setIsLoading(false);
+            return;
           }
         }
       }
-
-      setIsLoading(false);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         // リクエストがキャンセルされた場合は何もしない
@@ -362,6 +297,8 @@ export function useDifyStream() {
           ? error.message
           : "ストリーミング中に予期しないエラーが発生しました"
       );
+      setIsLoading(false);
+    } finally {
       setIsLoading(false);
     }
   }, []);
