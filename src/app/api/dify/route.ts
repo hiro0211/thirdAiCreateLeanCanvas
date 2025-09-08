@@ -15,46 +15,67 @@ function createDifyConfig(): DifyConfig {
   };
 }
 
-async function handlePersonaStreaming(
+async function handleStreamingRequest(
   body: any,
   difyClient: DifyApiClient,
   logger: Logger
 ) {
   try {
-    // 🔍 デバッグ: リクエストボディの詳細をログ出力
-    console.log("🎯 [DEBUG] API Route - Persona Streaming Request:");
+    console.log("🎯 [DEBUG] API Route - Streaming Request:");
     console.log("📦 Request Body:", JSON.stringify(body, null, 2));
 
-    // リクエストバリデーション
-    if (
-      !body.keyword ||
-      typeof body.keyword !== "string" ||
-      body.keyword.trim() === ""
-    ) {
-      throw new Error("キーワードが必要です");
+    const { task } = body;
+    let difyRequest: any;
+
+    // タスクに応じたリクエスト作成
+    switch (task) {
+      case "persona":
+        if (
+          !body.keyword ||
+          typeof body.keyword !== "string" ||
+          body.keyword.trim() === ""
+        ) {
+          throw new Error("キーワードが必要です");
+        }
+        difyRequest = {
+          inputs: {
+            keyword: body.keyword.trim(),
+          },
+          query: `キーワード「${body.keyword.trim()}」に基づいて10個のペルソナを生成してください。JSON形式で個別のペルソナオブジェクトを返してください。`,
+          task: "persona",
+        };
+        break;
+
+      case "canvas":
+        if (!body.persona || !body.business_idea || !body.product_name) {
+          throw new Error("リーンキャンバス生成に必要な情報が不足しています");
+        }
+        difyRequest = {
+          inputs: {
+            persona: body.persona,
+            business_idea: body.business_idea,
+            product_name: body.product_name,
+          },
+          query: "提供された情報に基づいてリーンキャンバスを生成してください。",
+          task: "canvas",
+        };
+        break;
+
+      default:
+        throw new Error(`未対応のストリーミングタスク: ${task}`);
     }
 
-    const difyRequest = {
-      inputs: {
-        keyword: body.keyword.trim(),
-      },
-      query: `キーワード「${body.keyword.trim()}」に基づいて10個のペルソナを生成してください。JSON形式で個別のペルソナオブジェクトを返してください。`,
-      task: "persona",
-    };
-
-    // 🔍 デバッグ: Difyリクエストの詳細をログ出力
     console.log("🎯 [DEBUG] API Route - Dify Request Details:");
     console.log("📦 Dify Request:", JSON.stringify(difyRequest, null, 2));
 
-    logger.info("Initiating persona streaming", {
-      keyword: body.keyword,
+    logger.info(`Initiating ${task} streaming`, {
+      task,
       difyRequest: difyRequest,
     });
 
     // Difyクライアントからストリーミングレスポンスを取得
     const difyResponse = await difyClient.callStreamingApi(difyRequest);
 
-    // 🔍 デバッグ: Difyレスポンスの詳細をログ出力
     console.log("📥 [DEBUG] API Route - Dify Response Details:");
     console.log("📊 Status:", difyResponse.status, difyResponse.statusText);
     console.log("📋 Response Headers:");
@@ -123,7 +144,62 @@ async function handlePersonaStreaming(
       "✅ [DEBUG] API Route - Streaming response detected, proxying..."
     );
 
-    // Difyからのストリームをそのままクライアントにプロキシ
+    // デバッグ用: ストリーミングデータの内容をログ出力
+    if (process.env.NODE_ENV === "development") {
+      const reader = difyResponse.body?.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      const debugStream = new ReadableStream({
+        start(controller) {
+          const pump = async () => {
+            while (true) {
+              const { done, value } = await reader!.read();
+
+              if (done) {
+                console.log("🏁 [DEBUG] Stream ended");
+                controller.close();
+                break;
+              }
+
+              const chunk = decoder.decode(value, { stream: true });
+              buffer += chunk;
+
+              console.log("📦 [DEBUG] Received chunk:", chunk);
+
+              // 行ごとに分析
+              const lines = buffer.split("\n");
+              buffer = lines.pop() || "";
+
+              for (const line of lines) {
+                if (line.trim()) {
+                  console.log("📝 [DEBUG] SSE Line:", line);
+                }
+              }
+
+              controller.enqueue(value);
+            }
+          };
+          pump().catch((err) => {
+            console.error("❌ [DEBUG] Stream error:", err);
+            controller.error(err);
+          });
+        },
+      });
+
+      return new Response(debugStream, {
+        headers: {
+          "Content-Type": "text/event-stream; charset=utf-8",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+      });
+    }
+
+    // 本番環境では通常のプロキシ
     return new Response(difyResponse.body, {
       headers: {
         "Content-Type": "text/event-stream; charset=utf-8",
@@ -135,7 +211,7 @@ async function handlePersonaStreaming(
       },
     });
   } catch (error) {
-    logger.error(error, { task: "persona_streaming" });
+    logger.error(error, { task: body.task });
 
     // エラーの場合もSSE形式でレスポンス
     const errorStream = new ReadableStream({
@@ -148,7 +224,7 @@ async function handlePersonaStreaming(
               error:
                 error instanceof Error
                   ? error.message
-                  : "ペルソナ生成中にエラーが発生しました",
+                  : `${body.task}生成中にエラーが発生しました`,
             })}\n\n`
           )
         );
@@ -185,9 +261,9 @@ export async function POST(request: NextRequest) {
     const config = createDifyConfig();
     const difyClient = new DifyApiClient(config);
 
-    // ペルソナ生成でストリーミングが要求された場合
-    if (task === "persona" && streaming) {
-      return handlePersonaStreaming(body, difyClient, logger);
+    // ストリーミングが要求された場合
+    if (streaming) {
+      return handleStreamingRequest(body, difyClient, logger);
     }
 
     // 従来の非ストリーミング処理

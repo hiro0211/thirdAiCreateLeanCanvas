@@ -63,13 +63,44 @@ export function StepLeanCanvasDisplay() {
   if (!leanCanvasData) {
     return (
       <div className="text-center max-w-2xl mx-auto mt-8">
-        <ErrorDisplay
-          error={ERROR_MESSAGES.LEAN_CANVAS_GENERATION_FAILED}
-          onRetry={() => window.location.reload()}
-          retryLabel={UI_LABELS.START_OVER}
-          className="mb-4"
-        />
-        <Button onClick={resetWorkflow} size="lg" className="mt-4">
+        <div className="mb-8">
+          <motion.div
+            className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center"
+            animate={{
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            <Award className="w-8 h-8 text-white" />
+          </motion.div>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+            リーンキャンバスを生成中...
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            AIがあなたのビジネスアイデアを分析してリーンキャンバスを作成しています。
+            <br />
+            しばらくお待ちください。
+          </p>
+          <div className="w-full max-w-md mx-auto bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
+            <motion.div
+              className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full"
+              animate={{
+                width: ["0%", "30%", "60%", "90%", "100%"],
+              }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          </div>
+        </div>
+        <Button onClick={resetWorkflow} variant="outline" size="lg">
           {UI_LABELS.START_OVER}
         </Button>
       </div>
@@ -99,7 +130,9 @@ export function StepLeanCanvasDisplay() {
         {/* カードヘッダー - シンプルで読みやすく */}
         <div className="p-6 bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-600">
           <div className="flex items-center space-x-4">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${colors.accent}`}>
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${colors.accent}`}
+            >
               {number}
             </div>
             <div className="flex-1">
@@ -438,7 +471,9 @@ export function StepLeanCanvasDisplay() {
                   className="bg-white dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-gray-600 shadow-sm p-5"
                 >
                   <div className="flex items-center space-x-3 mb-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${colors.accent}`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${colors.accent}`}
+                    >
                       {block.id}
                     </div>
                     <h3 className="font-semibold text-gray-900 dark:text-white text-base flex-1">

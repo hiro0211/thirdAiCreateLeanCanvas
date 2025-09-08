@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback } from "react";
+import React, { useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tag, CheckCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useWorkflowStore } from "@/stores/workflow-store";
-import { useGenerateLeanCanvas } from "@/hooks/useApiMutations";
+import { useDifyStream } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { ProductName } from "@/lib/types";
 import { WorkflowHeader, WorkflowNavigation, SelectableCard } from "./shared";
@@ -24,11 +24,19 @@ export function StepProductNameSelection() {
     goToPreviousStep,
   } = useWorkflowStore();
 
-  const generateLeanCanvasMutation = useGenerateLeanCanvas();
+  const {
+    data: streamingData,
+    isLoading: isStreaming,
+    error: streamingError,
+    executeStream,
+  } = useDifyStream();
 
-  const handleNameSelect = useCallback((name: ProductName) => {
-    selectProductName(name);
-  }, [selectProductName]);
+  const handleNameSelect = useCallback(
+    (name: ProductName) => {
+      selectProductName(name);
+    },
+    [selectProductName]
+  );
 
   const handleNext = useCallback(async () => {
     if (!selectedProductName || !selectedPersona || !selectedBusinessIdea) {
@@ -38,12 +46,16 @@ export function StepProductNameSelection() {
 
     try {
       setError(null);
-      const leanCanvasData = await generateLeanCanvasMutation.mutateAsync({
+
+      // ストリーミングでリーンキャンバスを生成
+      await executeStream({
+        task: "canvas",
         persona: selectedPersona,
-        businessIdea: selectedBusinessIdea,
-        productName: selectedProductName,
+        business_idea: selectedBusinessIdea,
+        product_name: selectedProductName,
       });
-      setLeanCanvasData(leanCanvasData);
+
+      // ストリーミング開始後、次のステップに移動
       goToNextStep();
     } catch (error) {
       setError(
@@ -52,7 +64,28 @@ export function StepProductNameSelection() {
           : "リーンキャンバスの生成に失敗しました"
       );
     }
-  }, [selectedProductName, selectedPersona, selectedBusinessIdea, setError, generateLeanCanvasMutation, setLeanCanvasData, goToNextStep]);
+  }, [
+    selectedProductName,
+    selectedPersona,
+    selectedBusinessIdea,
+    setError,
+    executeStream,
+    goToNextStep,
+  ]);
+
+  // ストリーミングデータが更新されたらストアに保存
+  React.useEffect(() => {
+    if (streamingData) {
+      setLeanCanvasData(streamingData);
+    }
+  }, [streamingData, setLeanCanvasData]);
+
+  // ストリーミングエラーをストアに反映
+  React.useEffect(() => {
+    if (streamingError) {
+      setError(streamingError);
+    }
+  }, [streamingError, setError]);
 
   return (
     <motion.div
@@ -80,7 +113,7 @@ export function StepProductNameSelection() {
       <div className={LAYOUT_PRESETS.GRID.TWO_COLUMN + " mb-8"}>
         {productNames.map((name, index) => {
           const isSelected = selectedProductName?.id === name.id;
-          
+
           return (
             <SelectableCard
               key={name.id}
@@ -157,7 +190,8 @@ export function StepProductNameSelection() {
                       {selectedProductName.name}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">選択理由:</span> {selectedProductName.reason}
+                      <span className="font-medium">選択理由:</span>{" "}
+                      {selectedProductName.reason}
                     </p>
                   </div>
                 </div>
@@ -171,8 +205,10 @@ export function StepProductNameSelection() {
         onPrevious={goToPreviousStep}
         onNext={handleNext}
         isNextDisabled={!selectedProductName}
-        isLoading={generateLeanCanvasMutation.isLoading}
-        nextLabel={generateLeanCanvasMutation.isLoading ? "リーンキャンバスを生成中..." : "リーンキャンバスを生成"}
+        isLoading={isStreaming}
+        nextLabel={
+          isStreaming ? "リーンキャンバスを生成中..." : "リーンキャンバスを生成"
+        }
         nextVariant="gradient"
       />
     </motion.div>
