@@ -153,11 +153,11 @@ export function StepPersonaSelection() {
       />
 
       {/* ローディング状態とエラー表示 */}
-      {isLoading && personas.length === 0 && (
+      {isLoading && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center py-12"
+          className="flex flex-col items-center justify-center py-8 mb-6"
         >
           <motion.div
             animate={{ rotate: 360 }}
@@ -170,8 +170,21 @@ export function StepPersonaSelection() {
             ペルソナを生成中...
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-500">
-            AIが10個のペルソナを作成しています
+            {personas.length > 0 
+              ? `${personas.length}/10 個のペルソナが生成されました`
+              : "AIが10個のペルソナを作成しています"
+            }
           </p>
+          {personas.length > 0 && (
+            <div className="mt-3 w-64 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <motion.div
+                className="bg-blue-500 h-2 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${(personas.length / 10) * 100}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+          )}
         </motion.div>
       )}
 

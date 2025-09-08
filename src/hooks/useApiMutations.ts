@@ -187,14 +187,15 @@ export function useGenerateLeanCanvas() {
 // Server-Sent Eventsのパース関数
 function parseSSEEvent(
   line: string
-): { event: string; data?: any; answer?: any } | null {
+): { event: string; data?: any; answer?: any; error?: string } | null {
   if (line.startsWith("data: ")) {
     try {
-      const jsonStr = line.slice(6); // "data: " を削除
+      const jsonStr = line.slice(6).trim();
+      if (!jsonStr) return null;
       const parsed = JSON.parse(jsonStr);
       return parsed;
     } catch (error) {
-      // JSONパースに失敗した場合は、イベントと生データを返す
+      // JSONパースに失敗した場合は、生データを返す
       return {
         event: "message",
         answer: line.slice(6),
@@ -204,9 +205,9 @@ function parseSSEEvent(
   return null;
 }
 
-// ストリーミング用カスタムフック
-export function useDifyStream() {
-  const [data, setData] = useState<any>(null);
+// 汎用ストリーミングフック
+export function useDifyStream<T = any>() {
+  const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -232,23 +233,24 @@ export function useDifyStream() {
         },
         body: JSON.stringify({
           ...request,
-          streaming: true, // ストリーミングフラグを追加
+          streaming: true,
         }),
         signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       if (!response.body) {
-        throw new Error("Response body is null");
+        throw new Error("レスポンスボディが存在しません");
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
-      let jsonStringAccumulator = ""; // JSON文字列を蓄積
+      let accumulatedText = "";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -266,21 +268,33 @@ export function useDifyStream() {
 
           if (event.event === "error") {
             throw new Error(
-              event.data?.error || "ストリーミング中にエラーが発生しました"
+              event.error || "ストリーミング中にエラーが発生しました"
             );
           }
 
-          if (event.event === "message" && typeof event.answer === "string") {
-            jsonStringAccumulator += event.answer;
+          if (event.event === "message" && event.answer) {
+            accumulatedText += event.answer;
+            
+            // JSON パースを試行
             try {
-              const parsedData = JSON.parse(jsonStringAccumulator);
+              const parsedData = JSON.parse(accumulatedText);
               setData(parsedData);
             } catch (e) {
-              console.log("Parsing partial JSON... waiting for more chunks.");
+              // まだ完全なJSONではない場合は続行
             }
           }
 
           if (event.event === "message_end") {
+            // 最終的なデータ処理
+            if (accumulatedText.trim()) {
+              try {
+                const finalData = JSON.parse(accumulatedText);
+                setData(finalData);
+              } catch (e) {
+                console.warn("最終JSONパースに失敗:", accumulatedText);
+              }
+            }
+            
             setIsLoading(false);
             return;
           }
@@ -288,16 +302,14 @@ export function useDifyStream() {
       }
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
-        // リクエストがキャンセルされた場合は何もしない
         return;
       }
 
-      setError(
-        error instanceof Error
-          ? error.message
-          : "ストリーミング中に予期しないエラーが発生しました"
-      );
-      setIsLoading(false);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "ストリーミング中に予期しないエラーが発生しました";
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -310,11 +322,33 @@ export function useDifyStream() {
     }
   }, []);
 
+  const reset = useCallback(() => {
+    setData(null);
+    setError(null);
+    setIsLoading(false);
+  }, []);
+
   return {
     data,
     isLoading,
     error,
     executeStream,
     cancel,
+    reset,
   };
+}
+
+// ビジネスアイデア用ストリーミングフック
+export function useBusinessIdeaStream() {
+  return useDifyStream<BusinessIdea[]>();
+}
+
+// プロダクト名用ストリーミングフック
+export function useProductNameStream() {
+  return useDifyStream<ProductName[]>();
+}
+
+// リーンキャンバス用ストリーミングフック
+export function useLeanCanvasStream() {
+  return useDifyStream<LeanCanvasData>();
 }

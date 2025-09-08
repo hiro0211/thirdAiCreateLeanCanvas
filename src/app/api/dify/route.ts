@@ -21,9 +21,6 @@ async function handleStreamingRequest(
   logger: Logger
 ) {
   try {
-    console.log("🎯 [DEBUG] API Route - Streaming Request:");
-    console.log("📦 Request Body:", JSON.stringify(body, null, 2));
-
     const { task } = body;
     let difyRequest: any;
 
@@ -41,8 +38,37 @@ async function handleStreamingRequest(
           inputs: {
             keyword: body.keyword.trim(),
           },
-          query: `キーワード「${body.keyword.trim()}」に基づいて10個のペルソナを生成してください。JSON形式で個別のペルソナオブジェクトを返してください。`,
+          query: `キーワード「${body.keyword.trim()}」に基づいて10個のペルソナを生成してください。`,
           task: "persona",
+        };
+        break;
+
+      case "businessidea":
+        if (!body.persona) {
+          throw new Error("ペルソナが必要です");
+        }
+        difyRequest = {
+          inputs: {
+            persona: JSON.stringify(body.persona),
+            creativity_level: body.creativity_level || "medium",
+          },
+          query: "選択されたペルソナに基づいて10個のビジネスアイデアを生成してください。",
+          task: "businessidea",
+        };
+        break;
+
+      case "productname":
+        if (!body.persona || !body.business_idea || !body.product_details) {
+          throw new Error("プロダクト名生成に必要な情報が不足しています");
+        }
+        difyRequest = {
+          inputs: {
+            persona: JSON.stringify(body.persona),
+            business_idea: JSON.stringify(body.business_idea),
+            product_details: JSON.stringify(body.product_details),
+          },
+          query: "提供された情報に基づいて10個のプロダクト名を生成してください。",
+          task: "productname",
         };
         break;
 
@@ -52,9 +78,9 @@ async function handleStreamingRequest(
         }
         difyRequest = {
           inputs: {
-            persona: body.persona,
-            business_idea: body.business_idea,
-            product_name: body.product_name,
+            persona: JSON.stringify(body.persona),
+            business_idea: JSON.stringify(body.business_idea),
+            product_name: JSON.stringify(body.product_name),
           },
           query: "提供された情報に基づいてリーンキャンバスを生成してください。",
           task: "canvas",
@@ -65,29 +91,13 @@ async function handleStreamingRequest(
         throw new Error(`未対応のストリーミングタスク: ${task}`);
     }
 
-    console.log("🎯 [DEBUG] API Route - Dify Request Details:");
-    console.log("📦 Dify Request:", JSON.stringify(difyRequest, null, 2));
-
     logger.info(`Initiating ${task} streaming`, {
       task,
-      difyRequest: difyRequest,
+      inputKeys: Object.keys(difyRequest.inputs),
     });
 
     // Difyクライアントからストリーミングレスポンスを取得
     const difyResponse = await difyClient.callStreamingApi(difyRequest);
-
-    console.log("📥 [DEBUG] API Route - Dify Response Details:");
-    console.log("📊 Status:", difyResponse.status, difyResponse.statusText);
-    console.log("📋 Response Headers:");
-    difyResponse.headers.forEach((value, key) => {
-      console.log(`  ${key}: ${value}`);
-    });
-    console.log("🌊 Response Body Type:", difyResponse.body?.constructor.name);
-    console.log("🔄 Content-Type:", difyResponse.headers.get("content-type"));
-    console.log(
-      "🔄 Is Streaming Response:",
-      difyResponse.headers.get("content-type")?.includes("text/event-stream")
-    );
 
     // ストリーミングかブロッキングかを判定
     const isStreamingResponse = difyResponse.headers
@@ -95,17 +105,9 @@ async function handleStreamingRequest(
       ?.includes("text/event-stream");
 
     if (!isStreamingResponse) {
-      console.warn(
-        "⚠️ [DEBUG] API Route - Dify returned non-streaming response!"
-      );
-      console.warn("📋 Expected: text/event-stream");
-      console.warn("📋 Actual:", difyResponse.headers.get("content-type"));
-
-      // ブロッキングレスポンスの場合、内容を読み取ってログ出力
+      // ブロッキングレスポンスの場合、ストリーミング形式に変換
       const responseText = await difyResponse.text();
-      console.log("📝 [DEBUG] Non-streaming Response Body:", responseText);
-
-      // 新しいレスポンスを作成してストリーミング形式に変換
+      
       const stream = new ReadableStream({
         start(controller) {
           const encoder = new TextEncoder();
@@ -139,10 +141,6 @@ async function handleStreamingRequest(
         },
       });
     }
-
-    console.log(
-      "✅ [DEBUG] API Route - Streaming response detected, proxying..."
-    );
 
     // Difyからのストリームをそのままクライアントにプロキシ
     return new Response(difyResponse.body, {

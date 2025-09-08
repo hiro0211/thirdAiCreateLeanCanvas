@@ -26,16 +26,21 @@ export function StepKeywordInput() {
   const { isLoading, error, generatePersonas } = usePersonaStream();
 
   const handleSubmit = useCallback(async () => {
-    if (!localKeyword.trim()) return;
+    if (!localKeyword.trim() || isLoading) return;
 
     setKeyword(localKeyword.trim());
 
-    // ペルソナ生成を開始（非同期で実行）
-    generatePersonas(localKeyword.trim());
-
-    // すぐに次の画面に遷移
-    goToNextStep();
-  }, [localKeyword, setKeyword, generatePersonas, goToNextStep]);
+    try {
+      // ペルソナ生成を開始（非同期で実行）
+      await generatePersonas(localKeyword.trim());
+      
+      // 生成が開始されたら次の画面に遷移
+      goToNextStep();
+    } catch (error) {
+      // エラーは usePersonaStream で処理される
+      console.error("ペルソナ生成の開始に失敗:", error);
+    }
+  }, [localKeyword, setKeyword, generatePersonas, goToNextStep, isLoading]);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
