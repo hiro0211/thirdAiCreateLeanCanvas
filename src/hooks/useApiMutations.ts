@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   DifyPersonaResponse,
   DifyBusinessIdeaResponse,
@@ -15,6 +15,7 @@ import {
   ProductDetails,
   ProductName,
 } from "@/lib/types";
+import { ENV_CONFIG } from "@/lib/config/env-config";
 
 // API呼び出し関数
 async function callDifyApi<T>(request: any): Promise<ApiResponse<T>> {
@@ -205,8 +206,141 @@ function parseSSEEvent(
   return null;
 }
 
-// 汎用ストリーミングフック
+// EventSourceを使用したストリーミングフック（推奨）
 export function useDifyStream<T = any>() {
+  const [data, setData] = useState<T | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
+
+  const executeStream = useCallback(async (request: any) => {
+    // 前回のEventSourceを閉じる
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setData(null);
+
+    try {
+      // リクエストパラメータをクエリストリングに変換
+      const params = new URLSearchParams({
+        request: JSON.stringify({
+          ...request,
+          streaming: true,
+        }),
+      });
+
+      // EventSourceでSSE接続を開始
+      const eventSource = new EventSource(`/api/dify/stream?${params}`);
+      eventSourceRef.current = eventSource;
+
+      let accumulatedText = "";
+
+      // メッセージイベントのハンドラ
+      eventSource.onmessage = (event) => {
+        try {
+          const parsedEvent = JSON.parse(event.data);
+
+          if (parsedEvent.event === "error") {
+            throw new Error(
+              parsedEvent.error || "ストリーミング中にエラーが発生しました"
+            );
+          }
+
+          if (parsedEvent.event === "message" && parsedEvent.answer) {
+            accumulatedText += parsedEvent.answer;
+
+            // JSON パースを試行
+            try {
+              const parsedData = JSON.parse(accumulatedText);
+              setData(parsedData);
+            } catch (e) {
+              // まだ完全なJSONではない場合は続行
+            }
+          }
+
+          if (parsedEvent.event === "message_end") {
+            // 最終的なデータ処理
+            if (accumulatedText.trim()) {
+              try {
+                const finalData = JSON.parse(accumulatedText);
+                setData(finalData);
+              } catch (e) {
+                console.warn("最終JSONパースに失敗:", accumulatedText);
+              }
+            }
+
+            setIsLoading(false);
+            eventSource.close();
+            eventSourceRef.current = null;
+          }
+        } catch (parseError) {
+          console.error("SSEイベントのパースに失敗:", parseError);
+        }
+      };
+
+      // エラーハンドラ
+      eventSource.onerror = (event) => {
+        const errorMessage = "ストリーミング接続でエラーが発生しました";
+        setError(errorMessage);
+        setIsLoading(false);
+        eventSource.close();
+        eventSourceRef.current = null;
+      };
+
+      // 接続が開かれた時のハンドラ
+      eventSource.onopen = () => {
+        console.log("SSE接続が開始されました");
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "ストリーミング接続の初期化に失敗しました";
+
+      setError(errorMessage);
+      setIsLoading(false);
+    }
+  }, []);
+
+  const cancel = useCallback(() => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+      setIsLoading(false);
+    }
+  }, []);
+
+  const reset = useCallback(() => {
+    setData(null);
+    setError(null);
+    setIsLoading(false);
+  }, []);
+
+  // コンポーネントのアンマウント時にEventSourceを閉じる
+  useEffect(() => {
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+    };
+  }, []);
+
+  return {
+    data,
+    isLoading,
+    error,
+    executeStream,
+    cancel,
+    reset,
+  };
+}
+
+// Fetch APIベースのストリーミングフック（後方互換性用）
+export function useDifyStreamLegacy<T = any>() {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -274,7 +408,7 @@ export function useDifyStream<T = any>() {
 
           if (event.event === "message" && event.answer) {
             accumulatedText += event.answer;
-            
+
             // JSON パースを試行
             try {
               const parsedData = JSON.parse(accumulatedText);
@@ -294,7 +428,7 @@ export function useDifyStream<T = any>() {
                 console.warn("最終JSONパースに失敗:", accumulatedText);
               }
             }
-            
+
             setIsLoading(false);
             return;
           }
@@ -305,10 +439,11 @@ export function useDifyStream<T = any>() {
         return;
       }
 
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "ストリーミング中に予期しないエラーが発生しました";
-      
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "ストリーミング中に予期しないエラーが発生しました";
+
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -338,17 +473,26 @@ export function useDifyStream<T = any>() {
   };
 }
 
+// 環境設定に基づいてEventSourceまたはFetch APIを自動選択するフック
+export function useDifyStreamAuto<T = any>() {
+  if (ENV_CONFIG.ENABLE_EVENTSOURCE) {
+    return useDifyStream<T>();
+  } else {
+    return useDifyStreamLegacy<T>();
+  }
+}
+
 // ビジネスアイデア用ストリーミングフック
 export function useBusinessIdeaStream() {
-  return useDifyStream<BusinessIdea[]>();
+  return useDifyStreamAuto<BusinessIdea[]>();
 }
 
 // プロダクト名用ストリーミングフック
 export function useProductNameStream() {
-  return useDifyStream<ProductName[]>();
+  return useDifyStreamAuto<ProductName[]>();
 }
 
 // リーンキャンバス用ストリーミングフック
 export function useLeanCanvasStream() {
-  return useDifyStream<LeanCanvasData>();
+  return useDifyStreamAuto<LeanCanvasData>();
 }

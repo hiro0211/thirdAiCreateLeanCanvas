@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useWorkflowStore } from "@/stores/workflow-store";
 import { Persona, DifyPersonaResponse } from "@/lib/types";
-import { useDifyStream } from "./useApiMutations";
+import { useDifyStreamAuto } from "./useApiMutations";
 
 interface UsePersonaStreamReturn {
   isLoading: boolean;
@@ -14,14 +14,14 @@ interface UsePersonaStreamReturn {
 export function usePersonaStream(): UsePersonaStreamReturn {
   const [localError, setLocalError] = useState<string | null>(null);
   const { clearPersonas, addPersona, setStreamingError } = useWorkflowStore();
-  
+
   const {
     data,
     isLoading,
     error: streamError,
     executeStream,
-    reset
-  } = useDifyStream<DifyPersonaResponse>();
+    reset,
+  } = useDifyStreamAuto<DifyPersonaResponse>();
 
   // ストリームからデータが取得された時の処理
   useEffect(() => {
@@ -79,10 +79,11 @@ export function usePersonaStream(): UsePersonaStreamReturn {
           keyword: keyword.trim(),
         });
       } catch (error) {
-        const errorMessage = error instanceof Error 
-          ? error.message 
-          : "ペルソナ生成中にエラーが発生しました";
-        
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "ペルソナ生成中にエラーが発生しました";
+
         setLocalError(errorMessage);
       }
     },

@@ -1,19 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DifyApiClient, DifyConfig } from "@/lib/dify/client";
+import { DifyApiClient } from "@/lib/dify/client";
 import { TaskProcessorFactory } from "@/lib/dify/task-processor";
 import { Logger } from "@/lib/utils/logger";
 import { ApiResponse } from "@/lib/types";
-import { ENV_CONFIG } from "@/lib/config/env-config";
+import { createDifyConfig } from "@/lib/config/env-config";
 import { ERROR_MESSAGES } from "@/lib/constants/messages";
 import { API_CONFIG } from "@/lib/constants/app-constants";
-
-function createDifyConfig(): DifyConfig {
-  return {
-    apiKey: ENV_CONFIG.DIFY_API_KEY,
-    apiUrl: ENV_CONFIG.DIFY_API_URL,
-    isDemoMode: ENV_CONFIG.IS_DEMO_MODE,
-  };
-}
 
 async function handleStreamingRequest(
   body: any,
@@ -52,7 +44,8 @@ async function handleStreamingRequest(
             persona: JSON.stringify(body.persona),
             creativity_level: body.creativity_level || "medium",
           },
-          query: "選択されたペルソナに基づいて10個のビジネスアイデアを生成してください。",
+          query:
+            "選択されたペルソナに基づいて10個のビジネスアイデアを生成してください。",
           task: "businessidea",
         };
         break;
@@ -67,7 +60,8 @@ async function handleStreamingRequest(
             business_idea: JSON.stringify(body.business_idea),
             product_details: JSON.stringify(body.product_details),
           },
-          query: "提供された情報に基づいて10個のプロダクト名を生成してください。",
+          query:
+            "提供された情報に基づいて10個のプロダクト名を生成してください。",
           task: "productname",
         };
         break;
@@ -107,10 +101,12 @@ async function handleStreamingRequest(
     if (!isStreamingResponse) {
       // ブロッキングレスポンスの場合、ストリーミング形式に変換
       const responseText = await difyResponse.text();
-      
+
       const stream = new ReadableStream({
         start(controller) {
           const encoder = new TextEncoder();
+          // retry設定で自動再接続を実質無効化
+          controller.enqueue(encoder.encode(`retry: 100000000\n\n`));
           controller.enqueue(
             encoder.encode(
               `data: ${JSON.stringify({

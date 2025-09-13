@@ -1,12 +1,7 @@
 import { Logger } from "../utils/logger";
 import { ENV_CONFIG } from "../config/env-config";
 import { API_CONFIG } from "../constants/app-constants";
-
-export interface DifyConfig {
-  apiKey: string;
-  apiUrl: string;
-  isDemoMode: boolean;
-}
+import type { DifyConfig } from "../config/env-config";
 
 export interface DifyRequest {
   inputs: Record<string, any>;
@@ -205,6 +200,8 @@ export class DifyApiClient {
     const stream = new ReadableStream({
       start(controller) {
         const encoder = new TextEncoder();
+        // retry設定で自動再接続を実質無効化
+        controller.enqueue(encoder.encode(`retry: 100000000\n\n`));
         controller.enqueue(
           encoder.encode(
             `data: ${JSON.stringify({
@@ -242,6 +239,9 @@ export class DifyApiClient {
     const stream = new ReadableStream({
       start(controller) {
         const encoder = new TextEncoder();
+
+        // retry設定で自動再接続を実質無効化
+        controller.enqueue(encoder.encode(`retry: 100000000\n\n`));
 
         // 各ペルソナを個別に送信
         if (mockData.personas && Array.isArray(mockData.personas)) {
