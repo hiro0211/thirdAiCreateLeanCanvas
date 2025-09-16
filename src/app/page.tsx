@@ -2,6 +2,7 @@
 
 import { Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { WorkflowStepper } from "@/components/workflow/WorkflowStepper";
 import { TutorialProvider } from "@/components/tutorial/TutorialProvider";
@@ -165,8 +166,14 @@ export default function HomePage() {
                   </span>
                 </p>
               </div>
-              <div className="text-xs sm:text-sm text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-4 text-xs sm:text-sm text-muted-foreground">
                 <span>Made with ❤️ for entrepreneurs</span>
+                <Link
+                  href="/legal"
+                  className="hover:text-foreground transition-colors duration-200 underline underline-offset-2"
+                >
+                  特定商取引法に基づく表記
+                </Link>
               </div>
             </div>
           </div>
