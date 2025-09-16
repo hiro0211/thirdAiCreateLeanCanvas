@@ -11,9 +11,7 @@ import {
   TutorialState,
   TutorialStep,
 } from "@/lib/types";
-import {
-  ERROR_MESSAGES,
-} from "@/lib/constants/messages";
+import { ERROR_MESSAGES } from "@/lib/constants/messages";
 
 interface WorkflowState {
   // Current state
@@ -169,6 +167,9 @@ interface TutorialStore extends TutorialState {
   skipTutorial: () => void;
   completeTutorial: () => void;
   resetTutorial: () => void;
+  // Donation highlight state (persisted)
+  donationHighlightSeen: boolean;
+  setDonationHighlightSeen: (seen: boolean) => void;
 }
 
 // チュートリアルステップを遅延生成してメモリ効率を向上
@@ -254,6 +255,7 @@ export const useTutorialStore = create<TutorialStore>()(
       currentStepIndex: 0,
       hasCompleted: false,
       isSkipped: false,
+      donationHighlightSeen: false,
       steps: createTutorialSteps(),
 
       startTutorial: () => {
@@ -305,12 +307,17 @@ export const useTutorialStore = create<TutorialStore>()(
           isSkipped: false,
         });
       },
+
+      setDonationHighlightSeen: (seen: boolean) => {
+        set({ donationHighlightSeen: seen });
+      },
     }),
     {
       name: "tutorial-state",
       partialize: (state) => ({
         hasCompleted: state.hasCompleted,
         isSkipped: state.isSkipped,
+        donationHighlightSeen: state.donationHighlightSeen,
       }),
     }
   )

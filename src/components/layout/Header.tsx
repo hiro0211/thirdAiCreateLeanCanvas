@@ -1,15 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, RotateCcw, HelpCircle } from "lucide-react";
+import { useState } from "react";
+import { Sparkles, RotateCcw, HelpCircle, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 import { useWorkflowStore } from "@/stores/workflow-store";
 import { useTutorialStore } from "@/stores/workflow-store";
+import { DonationAccordion } from "@/components/donation/DonationAccordion";
 
 export function Header() {
+  const [isDonationOpen, setIsDonationOpen] = useState(false);
   const { currentStep, resetWorkflow } = useWorkflowStore();
-  const { startTutorial } = useTutorialStore();
+  const { startTutorial, donationHighlightSeen } = useTutorialStore();
 
   const handleReset = () => {
     if (window.confirm("ワークフローをリセットして最初からやり直しますか？")) {
@@ -59,6 +62,39 @@ export function Header() {
           className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0"
           data-tutorial="header-actions"
         >
+          {/* 目立つ寄付ボタン */}
+          <div className="relative">
+            <motion.div
+              className="transition-all duration-200 ease-out hover:scale-105 active:scale-95"
+              animate={
+                !donationHighlightSeen ? { scale: [1, 1.05, 1] } : { scale: 1 }
+              }
+              transition={{
+                duration: 2,
+                repeat: !donationHighlightSeen ? Infinity : 0,
+              }}
+            >
+              <Button
+                onClick={() => setIsDonationOpen(!isDonationOpen)}
+                className={`relative overflow-hidden bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 hover:from-pink-600 hover:via-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl font-medium h-8 sm:h-9 px-3 sm:px-4 ${
+                  isDonationOpen ? "ring-2 ring-purple-300" : ""
+                }`}
+              >
+                <Heart className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="text-xs sm:text-sm">寄付をする</span>
+                {!donationHighlightSeen && (
+                  <motion.div
+                    className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                    }}
+                  />
+                )}
+              </Button>
+            </motion.div>
+          </div>
           <div className="transition-all duration-200 ease-out hover:scale-105 active:scale-95">
             <Button
               variant="outline"
@@ -90,6 +126,11 @@ export function Header() {
           <ThemeToggle />
         </div>
       </div>
+      {/* アコーディオン式寄付フォーム */}
+      <DonationAccordion
+        isOpen={isDonationOpen}
+        onClose={() => setIsDonationOpen(false)}
+      />
     </motion.header>
   );
 }
