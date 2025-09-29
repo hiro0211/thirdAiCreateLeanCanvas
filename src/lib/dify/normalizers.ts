@@ -40,16 +40,96 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
     return "";
   }
 
+  /**
+   * 連続するJSONオブジェクトを含むテキストをパースする
+   */
+  private parseMultipleJsonObjects(text: string): any[] {
+    const objects: any[] = [];
+    let currentJson = '';
+    let braceCount = 0;
+    let inString = false;
+    let escapeNext = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+
+      if (escapeNext) {
+        escapeNext = false;
+        currentJson += char;
+        continue;
+      }
+
+      if (char === '\\') {
+        escapeNext = true;
+        currentJson += char;
+        continue;
+      }
+
+      if (char === '"' && !escapeNext) {
+        inString = !inString;
+      }
+
+      if (!inString) {
+        if (char === '{') {
+          braceCount++;
+        } else if (char === '}') {
+          braceCount--;
+        }
+      }
+
+      currentJson += char;
+
+      // JSONオブジェクトが完成した場合
+      if (braceCount === 0 && currentJson.trim() && !inString) {
+        try {
+          const parsed = JSON.parse(currentJson.trim());
+          objects.push(parsed);
+          currentJson = '';
+        } catch (e) {
+          // パースに失敗した場合は次の文字から再開
+          if (i < text.length - 1) {
+            currentJson = '';
+            continue;
+          }
+        }
+      }
+    }
+
+    // 残りのJSONがある場合
+    if (currentJson.trim()) {
+      try {
+        const parsed = JSON.parse(currentJson.trim());
+        objects.push(parsed);
+      } catch (e) {
+        // 最後のJSONパースに失敗した場合は無視
+      }
+    }
+
+    return objects;
+  }
+
   normalize(data: any): Persona[] {
     let personas: any[] = [];
 
     if (data.personas) {
       personas = data.personas;
     } else if (data.text && typeof data.text === "string") {
-      // Text response is treated as error
-      throw new Error(
-        `Difyからテキストレスポンスが返されました。JSON形式での応答が必要です: ${data.text}`
-      );
+      // 連続するJSONオブジェクトをパースしてみる
+      try {
+        const parsedObjects = this.parseMultipleJsonObjects(data.text);
+        if (parsedObjects.length > 0) {
+          personas = parsedObjects;
+        } else {
+          // パースできない場合はエラー
+          throw new Error(
+            `Difyからテキストレスポンスが返されました。JSON形式での応答が必要です: ${data.text.substring(0, 500)}...`
+          );
+        }
+      } catch (parseError) {
+        throw new Error(
+          `Difyからテキストレスポンスが返されました。JSON形式での応答が必要です: ${data.text.substring(0, 500)}...`
+        );
+      }
     } else if (Array.isArray(data)) {
       // Direct array response
       personas = data;
@@ -190,13 +270,13 @@ export class ProductNameNormalizer extends DataNormalizer<any, ProductName[]> {
 export class ProductDetailsNormalizer extends DataNormalizer<any, DifyProductDetailsResponse> {
   private extractField(data: any, fieldName: keyof DifyProductDetailsResponse): string {
     const possibleKeys = [fieldName, `product_${fieldName}`, `service_${fieldName}`];
-    
+
     for (const key of possibleKeys) {
       if (data[key] && typeof data[key] === "string") {
         return data[key];
       }
     }
-    
+
     return "";
   }
 

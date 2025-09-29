@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   DifyPersonaResponse,
@@ -26,18 +27,107 @@ async function callDifyApi<T>(request: any): Promise<ApiResponse<T>> {
   });
 
   const result: ApiResponse<T> = await response.json();
-  
+
   if (!result.success) {
     throw new Error(result.error?.message || 'API call failed');
   }
-  
+
   return result;
 }
 
-// ペルソナ生成のミューテーション
+// ストリーミングペルソナ生成のカスタムフック
+export function useGeneratePersonasStream() {
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const generatePersonas = useCallback(async (keyword: string) => {
+    if (!keyword.trim()) return;
+
+    setIsLoading(true);
+    setError(null);
+    setPersonas([]);
+
+    try {
+      const response = await fetch('/api/dify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          task: "persona",
+          keyword: keyword.trim(),
+          streaming: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('レスポンスボディが取得できませんでした');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+
+            try {
+              const parsed = JSON.parse(data);
+
+              if (parsed.type === 'persona') {
+                setPersonas(prev => [...prev, parsed.data]);
+              } else if (parsed.type === 'error') {
+                throw new Error(parsed.message || 'ストリーミング中にエラーが発生しました');
+              } else if (parsed.type === 'end') {
+                break;
+              }
+            } catch (parseError) {
+              console.warn('JSON parse error:', parseError);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'ペルソナ生成に失敗しました';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const reset = useCallback(() => {
+    setPersonas([]);
+    setError(null);
+    setIsLoading(false);
+  }, []);
+
+  return {
+    personas,
+    isLoading,
+    error,
+    generatePersonas,
+    reset,
+  };
+}
+
+// 従来の非ストリーミング版（後方互換性のため保持）
 export function useGeneratePersonas() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (keyword: string) => {
       const result = await callDifyApi<DifyPersonaResponse>({
@@ -56,7 +146,7 @@ export function useGeneratePersonas() {
 // ビジネスアイデア生成のミューテーション
 export function useGenerateBusinessIdeas() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ persona, creativityLevel }: {
       persona: Persona;
@@ -72,7 +162,7 @@ export function useGenerateBusinessIdeas() {
     onSuccess: (data, variables) => {
       // 成功時にキャッシュに保存
       queryClient.setQueryData(
-        ['businessIdeas', variables.persona.id, variables.creativityLevel], 
+        ['businessIdeas', variables.persona.id, variables.creativityLevel],
         data
       );
     },
@@ -82,11 +172,11 @@ export function useGenerateBusinessIdeas() {
 // 商品詳細生成のミューテーション
 export function useGenerateProductDetails() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      persona, 
-      businessIdea 
+    mutationFn: async ({
+      persona,
+      businessIdea
     }: {
       persona: Persona;
       businessIdea: BusinessIdea;
@@ -101,8 +191,8 @@ export function useGenerateProductDetails() {
     onSuccess: (data, variables) => {
       // 成功時にキャッシュに保存
       const cacheKey = [
-        'productDetails', 
-        variables.persona.id, 
+        'productDetails',
+        variables.persona.id,
         variables.businessIdea.id
       ];
       queryClient.setQueryData(cacheKey, data);
@@ -113,12 +203,12 @@ export function useGenerateProductDetails() {
 // プロダクト名生成のミューテーション
 export function useGenerateProductNames() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      persona, 
-      businessIdea, 
-      productDetails 
+    mutationFn: async ({
+      persona,
+      businessIdea,
+      productDetails
     }: {
       persona: Persona;
       businessIdea: BusinessIdea;
@@ -135,8 +225,8 @@ export function useGenerateProductNames() {
     onSuccess: (data, variables) => {
       // 成功時にキャッシュに保存
       const cacheKey = [
-        'productNames', 
-        variables.persona.id, 
+        'productNames',
+        variables.persona.id,
         variables.businessIdea.id,
         JSON.stringify(variables.productDetails)
       ];
@@ -148,7 +238,7 @@ export function useGenerateProductNames() {
 // リーンキャンバス生成のミューテーション
 export function useGenerateLeanCanvas() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({
       persona,
@@ -170,8 +260,8 @@ export function useGenerateLeanCanvas() {
     onSuccess: (data, variables) => {
       // 成功時にキャッシュに保存
       const cacheKey = [
-        'leanCanvas', 
-        variables.persona.id, 
+        'leanCanvas',
+        variables.persona.id,
         variables.businessIdea.id,
         variables.productName.id
       ];
