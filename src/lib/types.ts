@@ -52,6 +52,8 @@ export interface DifyProductNameResponse {
 export interface DifyPersonaRequest {
   task: "persona";
   keyword: string;
+  challenges?: string;
+  notes?: string;
 }
 
 export interface DifyBusinessIdeaRequest {

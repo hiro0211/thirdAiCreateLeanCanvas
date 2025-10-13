@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
@@ -14,10 +15,12 @@ import { WorkflowHeader } from "./shared";
 import { LAYOUT_PRESETS } from "@/lib/constants/unified-presets";
 
 export function StepKeywordInput() {
-  const { keyword, error, setKeyword, setPersonas, goToNextStep, setError } =
+  const { keyword, challenges, notes, error, setInitialInputs, setPersonas, goToNextStep, setError } =
     useWorkflowStore();
 
   const [localKeyword, setLocalKeyword] = useState(keyword);
+  const [localChallenges, setLocalChallenges] = useState(challenges);
+  const [localNotes, setLocalNotes] = useState(notes);
   const generatePersonasMutation = useGeneratePersonas();
 
   // コンポーネント初期化時にエラー状態をクリア（マウント時のみ実行）
@@ -32,12 +35,14 @@ export function StepKeywordInput() {
   const handleSubmit = useCallback(async () => {
     if (!localKeyword.trim()) return;
 
-    setKeyword(localKeyword.trim());
+    setInitialInputs(localKeyword.trim(), localChallenges.trim(), localNotes.trim());
 
     try {
-      const personas = await generatePersonasMutation.mutateAsync(
-        localKeyword.trim()
-      );
+      const personas = await generatePersonasMutation.mutateAsync({
+        keyword: localKeyword.trim(),
+        challenges: localChallenges.trim() || undefined,
+        notes: localNotes.trim() || undefined,
+      });
       setPersonas(personas);
       goToNextStep();
     } catch (error) {
@@ -45,7 +50,7 @@ export function StepKeywordInput() {
         error instanceof Error ? error.message : "ペルソナ生成に失敗しました"
       );
     }
-  }, [localKeyword, setKeyword, generatePersonasMutation, setPersonas, goToNextStep, setError]);
+  }, [localKeyword, localChallenges, localNotes, setInitialInputs, generatePersonasMutation, setPersonas, goToNextStep, setError]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !generatePersonasMutation.isPending) {
@@ -110,6 +115,40 @@ export function StepKeywordInput() {
                 </motion.div>
               )}
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label
+              htmlFor="challenges"
+              className="text-base font-semibold text-gray-700"
+            >
+              顧客課題（任意）
+            </Label>
+            <Textarea
+              id="challenges"
+              value={localChallenges}
+              onChange={(e) => setLocalChallenges(e.target.value)}
+              placeholder="例: 時間がない、コストが高い、使い方がわからない..."
+              className="text-base border-2 rounded-xl shadow-sm focus:shadow-md transition-all duration-300 min-h-[100px]"
+              disabled={generatePersonasMutation.isPending}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <Label
+              htmlFor="notes"
+              className="text-base font-semibold text-gray-700"
+            >
+              補足情報（任意）
+            </Label>
+            <Textarea
+              id="notes"
+              value={localNotes}
+              onChange={(e) => setLocalNotes(e.target.value)}
+              placeholder="例: ターゲット地域、業界の特性、その他の背景情報..."
+              className="text-base border-2 rounded-xl shadow-sm focus:shadow-md transition-all duration-300 min-h-[100px]"
+              disabled={generatePersonasMutation.isPending}
+            />
           </div>
 
           <RetryableErrorDisplay

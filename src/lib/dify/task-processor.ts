@@ -60,10 +60,20 @@ export class PersonaTaskProcessor extends TaskProcessor<
   }
 
   buildDifyRequest(request: DifyPersonaRequest): DifyRequest {
+    const inputs: Record<string, string> = {
+      keyword: request.keyword.trim(),
+    };
+
+    // challengesとnotesが存在する場合のみ追加
+    if (request.challenges && request.challenges.trim()) {
+      inputs.challenges = request.challenges.trim();
+    }
+    if (request.notes && request.notes.trim()) {
+      inputs.notes = request.notes.trim();
+    }
+
     return {
-      inputs: {
-        keyword: request.keyword.trim(),
-      },
+      inputs,
       query: `キーワード「${request.keyword.trim()}」に基づいて10個のペルソナを生成してください。JSON形式で {personas: [...]} として返してください。`,
       task: "persona",
     };
