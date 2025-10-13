@@ -6,72 +6,48 @@ import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
-import { useGeneratePersonasStream } from "@/hooks/useApiMutations";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { WorkflowHeader } from "./shared";
 import { LAYOUT_PRESETS } from "@/lib/constants/unified-presets";
 
 export function StepKeywordInput() {
-  const { keyword, error, setKeyword, setPersonas, goToNextStep, setError } =
+  const { keyword, error, setKeyword, goToNextStep, setError } =
     useWorkflowStore();
 
   const [localKeyword, setLocalKeyword] = useState(keyword);
-  const {
-    personas: streamingPersonas,
-    isLoading,
-    error: streamingError,
-    generatePersonas,
-    reset: resetStream
-  } = useGeneratePersonasStream();
 
   // コンポーネント初期化時にエラー状態をクリア（マウント時のみ実行）
   useEffect(() => {
     setError(null); // ワークフローストアのエラーをクリア
-    resetStream(); // ストリーミング状態をリセット
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 初回マウント時のみ実行
 
-  // ストリーミングでペルソナが追加されたら自動的に次のステップへ
-  useEffect(() => {
-    if (streamingPersonas.length > 0) {
-      setPersonas(streamingPersonas);
-
-      // 全てのペルソナが生成完了したら次のステップへ（10個が完了の目安）
-      if (!isLoading && streamingPersonas.length >= 5) {
-        setTimeout(() => {
-          goToNextStep();
-        }, 1000); // 1秒後に自動遷移
-      }
-    }
-  }, [streamingPersonas, isLoading, setPersonas, goToNextStep]);
-
-  // ストリーミングエラーをワークフローストアに反映
-  useEffect(() => {
-    if (streamingError) {
-      setError(streamingError);
-    }
-  }, [streamingError, setError]);
-
-  const handleSubmit = useCallback(async () => {
-    if (!localKeyword.trim() || isLoading) return;
+  const handleSubmit = useCallback(() => {
+    if (!localKeyword.trim()) return;
 
     setKeyword(localKeyword.trim());
     setError(null);
 
-    try {
-      await generatePersonas(localKeyword.trim());
-    } catch (error) {
-      // エラーは useGeneratePersonasStream 内で処理済み
-    }
-  }, [localKeyword, setKeyword, generatePersonas, isLoading, setError]);
+    // 次のステップ（ペルソナ選択画面）に遷移
+    goToNextStep();
+  }, [localKeyword, setKeyword, setError, goToNextStep]);
 
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !isLoading) {
-      handleSubmit();
-    }
-  }, [handleSubmit, isLoading]);
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        handleSubmit();
+      }
+    },
+    [handleSubmit]
+  );
 
   return (
     <motion.div
@@ -119,15 +95,13 @@ export function StepKeywordInput() {
                 onKeyDown={handleKeyPress}
                 placeholder="例: サステナブル、ダイエット、属人化、健康管理、教育..."
                 className="text-lg py-6 px-4 border-2 rounded-xl shadow-sm focus:shadow-md transition-all duration-300"
-                disabled={isLoading}
               />
               {localKeyword && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
-                >
-                </motion.div>
+                ></motion.div>
               )}
             </div>
           </div>
@@ -135,45 +109,8 @@ export function StepKeywordInput() {
           <RetryableErrorDisplay
             error={error}
             onRetry={handleSubmit}
-            retryLabel="ペルソナを再生成"
+            retryLabel="再試行"
           />
-
-          {/* ストリーミング中のペルソナ表示 */}
-          {streamingPersonas.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6 space-y-3"
-            >
-              <h4 className="font-semibold text-gray-800 mb-3">
-                生成されたペルソナ ({streamingPersonas.length}個)
-              </h4>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {streamingPersonas.map((persona, index) => (
-                  <motion.div
-                    key={persona.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100"
-                  >
-                    <p className="text-sm text-gray-700 line-clamp-2">
-                      {persona.description}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
-              {isLoading && (
-                <motion.div
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  className="text-center text-sm text-gray-500 mt-2"
-                >
-                  ペルソナを生成中...
-                </motion.div>
-              )}
-            </motion.div>
-          )}
 
           <motion.div
             className="pt-4"
@@ -182,25 +119,13 @@ export function StepKeywordInput() {
           >
             <Button
               onClick={handleSubmit}
-              disabled={!localKeyword.trim() || isLoading}
+              disabled={!localKeyword.trim()}
               size="lg"
               className="w-full text-lg py-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               data-tutorial="generate-personas"
             >
-              {isLoading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="mr-2"
-                >
-                  <Sparkles className="w-5 h-5" />
-                </motion.div>
-              ) : (
-                <Sparkles className="w-5 h-5 mr-2" />
-              )}
-              {isLoading
-                ? `ペルソナを生成中... (${streamingPersonas.length}個完了)`
-                : "ペルソナを生成"}
+              <Sparkles className="w-5 h-5 mr-2" />
+              ペルソナを生成
             </Button>
           </motion.div>
 
@@ -214,7 +139,7 @@ export function StepKeywordInput() {
             <h4 className="font-semibold text-gray-800 mb-2">💡 ヒント</h4>
             <ul className="text-sm text-gray-600 space-y-1">
               <li>• 具体的な業界や技術に関するキーワードが効果的です</li>
-              <li>• 複数のキーワードを組み合わせられます</li>
+              <li>• 複数のキーワードを組み合わせてペルソナを作れます</li>
               <li>
                 • 新しいトレンドや社会課題に関連するキーワードもおすすめです
               </li>

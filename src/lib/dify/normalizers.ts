@@ -1,4 +1,10 @@
-import { Persona, BusinessIdea, ProductName, LeanCanvasData, DifyProductDetailsResponse } from "../types";
+import {
+  Persona,
+  BusinessIdea,
+  ProductName,
+  LeanCanvasData,
+  DifyProductDetailsResponse,
+} from "../types";
 
 export abstract class DataNormalizer<TInput, TOutput> {
   abstract normalize(data: any): TOutput;
@@ -45,7 +51,7 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
    */
   private parseMultipleJsonObjects(text: string): any[] {
     const objects: any[] = [];
-    let currentJson = '';
+    let currentJson = "";
     let braceCount = 0;
     let inString = false;
     let escapeNext = false;
@@ -59,7 +65,7 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
         continue;
       }
 
-      if (char === '\\') {
+      if (char === "\\") {
         escapeNext = true;
         currentJson += char;
         continue;
@@ -70,9 +76,9 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
       }
 
       if (!inString) {
-        if (char === '{') {
+        if (char === "{") {
           braceCount++;
-        } else if (char === '}') {
+        } else if (char === "}") {
           braceCount--;
         }
       }
@@ -84,11 +90,11 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
         try {
           const parsed = JSON.parse(currentJson.trim());
           objects.push(parsed);
-          currentJson = '';
+          currentJson = "";
         } catch (e) {
           // パースに失敗した場合は次の文字から再開
           if (i < text.length - 1) {
-            currentJson = '';
+            currentJson = "";
             continue;
           }
         }
@@ -157,7 +163,7 @@ export class PersonaNormalizer extends DataNormalizer<any, Persona[]> {
         }
 
         return {
-          id: persona.id || index + 1,
+          id: persona.id || `persona-${Date.now()}-${index}`,
           description,
           explicit_needs: this.extractPersonaNeeds(persona, "explicit"),
           implicit_needs: this.extractPersonaNeeds(persona, "implicit"),
@@ -202,7 +208,7 @@ export class BusinessIdeaNormalizer extends DataNormalizer<
 
     if (Array.isArray(businessIdeas)) {
       return businessIdeas.map((idea: any, index: number) => ({
-        id: idea.id || index + 1,
+        id: idea.id || `idea-${Date.now()}-${index}`,
         idea_text: this.extractIdeaText(idea),
         osborn_hint: this.extractOsbornHint(idea),
       }));
@@ -251,7 +257,7 @@ export class ProductNameNormalizer extends DataNormalizer<any, ProductName[]> {
 
     if (Array.isArray(productNames)) {
       return productNames.map((name: any, index: number) => ({
-        id: name.id || index + 1,
+        id: name.id || `name-${Date.now()}-${index}`,
         name: this.extractProductName(name),
         reason: this.extractProductField(name, "reason"),
         pros: this.extractProductField(name, "pros"),
@@ -267,9 +273,19 @@ export class ProductNameNormalizer extends DataNormalizer<any, ProductName[]> {
   }
 }
 
-export class ProductDetailsNormalizer extends DataNormalizer<any, DifyProductDetailsResponse> {
-  private extractField(data: any, fieldName: keyof DifyProductDetailsResponse): string {
-    const possibleKeys = [fieldName, `product_${fieldName}`, `service_${fieldName}`];
+export class ProductDetailsNormalizer extends DataNormalizer<
+  any,
+  DifyProductDetailsResponse
+> {
+  private extractField(
+    data: any,
+    fieldName: keyof DifyProductDetailsResponse
+  ): string {
+    const possibleKeys = [
+      fieldName,
+      `product_${fieldName}`,
+      `service_${fieldName}`,
+    ];
 
     for (const key of possibleKeys) {
       if (data[key] && typeof data[key] === "string") {
