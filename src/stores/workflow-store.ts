@@ -22,6 +22,8 @@ interface WorkflowState {
 
   // Step data
   keyword: string;
+  challenges: string;
+  notes: string;
   creativityLevel: CreativityLevel;
   personas: Persona[];
   selectedPersona: Persona | null;
@@ -33,6 +35,7 @@ interface WorkflowState {
   leanCanvasData: LeanCanvasData | null;
 
   // Actions
+  setInitialInputs: (keyword: string, challenges: string, notes: string) => void;
   setKeyword: (keyword: string) => void;
   setCreativityLevel: (level: CreativityLevel) => void;
   setPersonas: (personas: Persona[]) => void;
@@ -71,6 +74,8 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   error: null,
 
   keyword: "",
+  challenges: "",
+  notes: "",
   creativityLevel: "realistic",
   personas: [],
   selectedPersona: null,
@@ -82,6 +87,10 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   leanCanvasData: null,
 
   // Actions
+  setInitialInputs: (keyword, challenges, notes) => {
+    set({ keyword, challenges, notes, error: null });
+  },
+
   setKeyword: (keyword) => {
     set({ keyword, error: null });
   },
@@ -143,6 +152,8 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       currentStep: "keyword",
       error: null,
       keyword: "",
+      challenges: "",
+      notes: "",
       creativityLevel: "realistic",
       personas: [],
       selectedPersona: null,

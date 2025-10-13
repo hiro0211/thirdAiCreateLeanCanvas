@@ -39,16 +39,22 @@ export function useGeneratePersonas() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (keyword: string) => {
+    mutationFn: async ({ keyword, challenges, notes }: { 
+      keyword: string; 
+      challenges?: string; 
+      notes?: string 
+    }) => {
       const result = await callDifyApi<DifyPersonaResponse>({
         task: "persona",
         keyword: keyword.trim(),
+        challenges: challenges?.trim(),
+        notes: notes?.trim(),
       });
       return result.data?.personas || [];
     },
-    onSuccess: (data, keyword) => {
+    onSuccess: (data, variables) => {
       // 成功時にキャッシュに保存
-      queryClient.setQueryData(['personas', keyword], data);
+      queryClient.setQueryData(['personas', variables.keyword], data);
     },
   });
 }
