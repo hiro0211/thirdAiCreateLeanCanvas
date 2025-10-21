@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tag, CheckCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useWorkflowStore } from "@/stores/workflow-store";
-import { useGenerateLeanCanvas } from "@/hooks/useApiMutations";
+import { generateLeanCanvasAction } from "@/app/actions";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { ProductName } from "@/lib/types";
 import { WorkflowHeader, WorkflowNavigation, SelectableCard } from "./shared";
@@ -24,35 +24,35 @@ export function StepProductNameSelection() {
     goToPreviousStep,
   } = useWorkflowStore();
 
-  const generateLeanCanvasMutation = useGenerateLeanCanvas();
+  const [isPending, startTransition] = useTransition();
 
   const handleNameSelect = useCallback((name: ProductName) => {
     selectProductName(name);
   }, [selectProductName]);
 
-  const handleNext = useCallback(async () => {
+  const handleNext = useCallback(() => {
     if (!selectedProductName || !selectedPersona || !selectedBusinessIdea) {
       setError("必要な情報が選択されていません");
       return;
     }
 
-    try {
-      setError(null);
-      const leanCanvasData = await generateLeanCanvasMutation.mutateAsync({
+    setError(null);
+    
+    startTransition(async () => {
+      const result = await generateLeanCanvasAction({
         persona: selectedPersona,
         businessIdea: selectedBusinessIdea,
         productName: selectedProductName,
       });
-      setLeanCanvasData(leanCanvasData);
-      goToNextStep();
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "リーンキャンバスの生成に失敗しました"
-      );
-    }
-  }, [selectedProductName, selectedPersona, selectedBusinessIdea, setError, generateLeanCanvasMutation, setLeanCanvasData, goToNextStep]);
+      
+      if (result.success) {
+        setLeanCanvasData(result.data);
+        goToNextStep();
+      } else {
+        setError(result.error);
+      }
+    });
+  }, [selectedProductName, selectedPersona, selectedBusinessIdea, setError, setLeanCanvasData, goToNextStep]);
 
   return (
     <motion.div
@@ -171,8 +171,8 @@ export function StepProductNameSelection() {
         onPrevious={goToPreviousStep}
         onNext={handleNext}
         isNextDisabled={!selectedProductName}
-        isLoading={generateLeanCanvasMutation.isLoading}
-        nextLabel={generateLeanCanvasMutation.isLoading ? "リーンキャンバスを生成中..." : "リーンキャンバスを生成"}
+        isLoading={isPending}
+        nextLabel={isPending ? "リーンキャンバスを生成中..." : "リーンキャンバスを生成"}
         nextVariant="gradient"
       />
     </motion.div>

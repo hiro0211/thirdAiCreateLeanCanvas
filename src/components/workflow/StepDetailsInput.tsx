@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useTransition } from "react";
 import { motion } from "framer-motion";
 import { Package, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useWorkflowStore } from "@/stores/workflow-store";
-import { useGenerateProductNames, useGenerateProductDetails } from "@/hooks/useApiMutations";
+import { generateProductNamesAction, generateProductDetailsAction } from "@/app/actions";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { ProductDetails } from "@/lib/types";
 import { WorkflowHeader, WorkflowNavigation } from "./shared";
@@ -33,8 +33,8 @@ export function StepDetailsInput() {
     goToPreviousStep,
   } = useWorkflowStore();
 
-  const generateProductNamesMutation = useGenerateProductNames();
-  const generateProductDetailsMutation = useGenerateProductDetails();
+  const [isPendingGenerate, startGenerateTransition] = useTransition();
+  const [isPendingNext, startNextTransition] = useTransition();
 
   const [localDetails, setLocalDetails] =
     useState<ProductDetails>(productDetails);
@@ -51,56 +51,53 @@ export function StepDetailsInput() {
     localDetails.feature.trim() &&
     localDetails.brandImage.trim();
 
-  const handleAIGenerate = useCallback(async () => {
+  const handleAIGenerate = useCallback(() => {
     if (!selectedPersona || !selectedBusinessIdea) {
       setError("ペルソナまたはビジネスアイデアが選択されていません");
       return;
     }
 
-    try {
-      setError(null);
-      const generatedDetails = await generateProductDetailsMutation.mutateAsync({
+    setError(null);
+    
+    startGenerateTransition(async () => {
+      const result = await generateProductDetailsAction({
         persona: selectedPersona,
         businessIdea: selectedBusinessIdea,
       });
       
-      if (generatedDetails) {
-        setLocalDetails(generatedDetails);
+      if (result.success) {
+        setLocalDetails(result.data);
+      } else {
+        setError(result.error);
       }
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "商品詳細の生成に失敗しました"
-      );
-    }
-  }, [selectedPersona, selectedBusinessIdea, setError, generateProductDetailsMutation]);
+    });
+  }, [selectedPersona, selectedBusinessIdea, setError]);
 
-  const handleNext = useCallback(async () => {
+  const handleNext = useCallback(() => {
     if (!isFormValid) return;
     if (!selectedPersona || !selectedBusinessIdea) {
       setError("ペルソナまたはビジネスアイデアが選択されていません");
       return;
     }
 
-    try {
-      setError(null);
-      setProductDetails(localDetails);
-      const productNames = await generateProductNamesMutation.mutateAsync({
+    setError(null);
+    setProductDetails(localDetails);
+    
+    startNextTransition(async () => {
+      const result = await generateProductNamesAction({
         persona: selectedPersona,
         businessIdea: selectedBusinessIdea,
         productDetails: localDetails,
       });
-      setProductNames(productNames);
-      goToNextStep();
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "プロダクト名の生成に失敗しました"
-      );
-    }
-  }, [isFormValid, selectedPersona, selectedBusinessIdea, setError, setProductDetails, localDetails, generateProductNamesMutation, setProductNames, goToNextStep]);
+      
+      if (result.success) {
+        setProductNames(result.data);
+        goToNextStep();
+      } else {
+        setError(result.error);
+      }
+    });
+  }, [isFormValid, selectedPersona, selectedBusinessIdea, setError, setProductDetails, localDetails, setProductNames, goToNextStep]);
 
   return (
     <motion.div
@@ -133,12 +130,12 @@ export function StepDetailsInput() {
             </div>
             <Button
               onClick={handleAIGenerate}
-              disabled={generateProductDetailsMutation.isPending || !selectedPersona || !selectedBusinessIdea}
+              disabled={isPendingGenerate || !selectedPersona || !selectedBusinessIdea}
               variant="outline"
               size="sm"
               className="ml-4 shrink-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
             >
-              {generateProductDetailsMutation.isPending ? (
+              {isPendingGenerate ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   生成中...
@@ -159,8 +156,8 @@ export function StepDetailsInput() {
         >
           <RetryableErrorDisplay
             error={error}
-            onRetry={generateProductDetailsMutation.error ? handleAIGenerate : handleNext}
-            retryLabel={generateProductDetailsMutation.error ? "商品詳細を再生成" : "プロダクト名を再生成"}
+            onRetry={handleNext}
+            retryLabel="プロダクト名を再生成"
           />
 
           <motion.div
@@ -260,8 +257,8 @@ export function StepDetailsInput() {
               onPrevious={goToPreviousStep}
               onNext={handleNext}
               isNextDisabled={!isFormValid}
-              isLoading={generateProductNamesMutation.isLoading}
-              nextLabel={generateProductNamesMutation.isLoading ? "プロダクト名を生成中..." : "プロダクト名を生成"}
+              isLoading={isPendingNext}
+              nextLabel={isPendingNext ? "プロダクト名を生成中..." : "プロダクト名を生成"}
               nextVariant="gradient"
             />
           </div>
