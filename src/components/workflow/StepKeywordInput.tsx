@@ -72,8 +72,8 @@ export function StepKeywordInput() {
               scale: [1, 1.1, 1],
             }}
             transition={{
-              rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-              scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+              rotate: { duration: 20, repeat: Infinity, ease: "linear" as const },
+              scale: { duration: 2, repeat: Infinity, ease: "easeInOut" as const },
             }}
           >
             <Sparkles className="w-8 h-8 text-white" />
@@ -170,7 +170,7 @@ export function StepKeywordInput() {
               {isPending ? (
                 <motion.div
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" as const }}
                   className="mr-2"
                 >
                   <Sparkles className="w-5 h-5" />

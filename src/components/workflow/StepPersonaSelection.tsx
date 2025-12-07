@@ -154,7 +154,7 @@ export function StepPersonaSelection() {
                     transition={{
                       duration: 2,
                       repeat: Infinity,
-                      ease: "easeInOut",
+                      ease: "easeInOut" as const,
                     }}
                     className="flex-shrink-0"
                   >

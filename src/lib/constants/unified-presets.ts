@@ -7,18 +7,18 @@ export const ANIMATION_PRESETS = {
   HEADER: {
     ICON_ROTATE: {
       animate: { rotate: [0, 360] },
-      transition: { duration: 20, repeat: Infinity, ease: "linear" }
+      transition: { duration: 20, repeat: Infinity, ease: "linear" as const }
     },
     ICON_SCALE: {
       animate: { scale: [1, 1.1, 1] },
-      transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+      transition: { duration: 2, repeat: Infinity, ease: "easeInOut" as const }
     },
     ICON_BOUNCE: {
       animate: { 
         scale: [1, 1.05, 1],
         rotate: [0, 5, -5, 0]
       },
-      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" as const }
     },
     TITLE: {
       initial: { opacity: 0, y: -10 },

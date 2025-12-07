@@ -11,8 +11,8 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
           queries: {
             // 5分間キャッシュを保持
             staleTime: 5 * 60 * 1000,
-            // 10分間データを保持
-            cacheTime: 10 * 60 * 1000,
+            // 10分間データを保持（v5では cacheTime → gcTime に変更）
+            gcTime: 10 * 60 * 1000,
             // エラー時の再試行
             retry: (failureCount, error) => {
               // 3回まで再試行

@@ -203,7 +203,7 @@ export function WorkflowStepper({ currentStep }: WorkflowStepperProps) {
               className="h-2 bg-gradient-primary rounded-full"
               initial={{ width: "0%" }}
               animate={{ width: `${progressPercentage}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 0.8, ease: "easeOut" as const }}
             />
           </div>
         </motion.button>
@@ -217,7 +217,7 @@ export function WorkflowStepper({ currentStep }: WorkflowStepperProps) {
               exit={{ height: 0, opacity: 0, y: -10 }}
               transition={{
                 duration: 0.3,
-                ease: "easeInOut",
+                ease: "easeInOut" as const,
                 height: { duration: 0.3 },
                 opacity: { duration: 0.2 },
                 y: { duration: 0.2 },

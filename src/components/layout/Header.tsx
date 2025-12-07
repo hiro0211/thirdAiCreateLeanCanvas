@@ -39,7 +39,7 @@ export function Header() {
             transition={{
               duration: 20,
               repeat: Infinity,
-              ease: "linear",
+              ease: "linear" as const,
             }}
           >
             <Sparkles className="w-4 h-4 sm:w-6 sm:h-6 text-white" />

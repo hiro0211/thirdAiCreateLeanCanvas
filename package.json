@@ -9,7 +9,6 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "clean": "rimraf .next out",
-    "prebuild": "npm run clean",
     "build:production": "npm run type-check && npm run lint && npm run build"
   },
   "dependencies": {
@@ -18,19 +17,17 @@
     "@radix-ui/react-progress": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-switch": "^1.0.3",
-    "@tanstack/react-query": "^4.35.0",
+    "@tanstack/react-query": "^5.90.12",
     "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "framer-motion": "^10.16.0",
+    "framer-motion": "^12.23.25",
     "lucide-react": "^0.288.0",
-    "next": "^15.4.6",
+    "next": "^16.0.7",
     "postcss": "^8",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "tailwind-merge": "^1.14.0",
     "tailwindcss": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
@@ -38,10 +35,10 @@
     "zustand": "^4.5.7"
   },
   "devDependencies": {
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.0.0",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^16.0.7",
     "prettier": "^3.0.0",
     "rimraf": "^5.0.0"
   }

@@ -85,12 +85,12 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
                       rotate: {
                         duration: 20,
                         repeat: Infinity,
-                        ease: "linear",
+                        ease: "linear" as const,
                       },
                       scale: {
                         duration: 2,
                         repeat: Infinity,
-                        ease: "easeInOut",
+                        ease: "easeInOut" as const,
                       },
                     }}
                   >

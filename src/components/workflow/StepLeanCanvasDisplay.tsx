@@ -291,7 +291,7 @@ export function StepLeanCanvasDisplay() {
           transition={{
             duration: 4,
             repeat: Infinity,
-            ease: "easeInOut",
+            ease: "easeInOut" as const,
           }}
         >
           <Award className="w-8 h-8 text-white" />
@@ -367,7 +367,7 @@ export function StepLeanCanvasDisplay() {
                     initial={{ x: 300, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -300, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    transition={{ duration: 0.3, ease: "easeInOut" as const }}
                   >
                     <MobileCanvasCard
                       number={currentCardData.number}
@@ -615,7 +615,7 @@ export function StepLeanCanvasDisplay() {
           transition={{
             duration: 3,
             repeat: Infinity,
-            ease: "easeInOut",
+            ease: "easeInOut" as const,
           }}
           className="text-4xl sm:text-5xl mb-4"
         >

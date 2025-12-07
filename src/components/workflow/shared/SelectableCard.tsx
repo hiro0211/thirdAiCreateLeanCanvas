@@ -113,4 +113,4 @@ const SelectableCardComponent = <T,>({
 // メモ化でパフォーマンス最適化
 export const SelectableCard = memo(SelectableCardComponent) as <T>(
   props: SelectableCardProps<T>
-) => JSX.Element;
+) => React.ReactElement;

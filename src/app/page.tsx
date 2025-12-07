@@ -71,7 +71,7 @@ const StepLoadingFallback = () => (
       <motion.div
         className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full"
         animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" as const }}
       />
       <p className="text-sm text-muted-foreground">Loading...</p>
     </div>
@@ -122,7 +122,7 @@ export default function HomePage() {
             transition={{
               duration: 8,
               repeat: Infinity,
-              ease: "easeInOut",
+              ease: "easeInOut" as const,
             }}
           />
           <motion.div
@@ -134,7 +134,7 @@ export default function HomePage() {
             transition={{
               duration: 10,
               repeat: Infinity,
-              ease: "easeInOut",
+              ease: "easeInOut" as const,
             }}
           />
           <motion.div
@@ -146,7 +146,7 @@ export default function HomePage() {
             transition={{
               duration: 12,
               repeat: Infinity,
-              ease: "easeInOut",
+              ease: "easeInOut" as const,
             }}
           />
         </div>

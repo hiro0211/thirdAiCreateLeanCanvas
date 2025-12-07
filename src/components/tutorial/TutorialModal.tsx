@@ -246,7 +246,7 @@ export function TutorialModal() {
                     animate={{
                       width: `${((currentStepIndex + 1) / steps.length) * 100}%`,
                     }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    transition={{ duration: 0.5, ease: "easeOut" as const }}
                   />
                 </div>
               </div>
