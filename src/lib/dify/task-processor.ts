@@ -117,6 +117,9 @@ export class BusinessIdeaTaskProcessor extends TaskProcessor<
         explicit_needs: request.persona.explicit_needs,
         implicit_needs: request.persona.implicit_needs,
         creativity_level: request.creativity_level,
+        // Difyワークフローが参照する追加パラメータ
+        challenges: "", // オプショナル
+        keyword: "", // オプショナル
       },
       query: `次のペルソナに基づいて、${request.creativity_level}思考モードで10個のビジネスアイデアを生成してください。JSON形式で {business_ideas: [...]} として返してください。`,
       task: "businessidea",

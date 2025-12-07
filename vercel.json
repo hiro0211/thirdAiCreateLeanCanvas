@@ -1,5 +1,4 @@
 {
-  "buildCommand": "npm install --legacy-peer-deps && npm run build",
   "env": {
     "NEXT_PUBLIC_DIFY_API_URL": "https://api.dify.ai/v1"
   }
