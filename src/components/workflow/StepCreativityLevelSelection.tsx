@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useTransition } from "react";
 import { Lightbulb } from "lucide-react";
 import { useWorkflowStore } from "@/stores/workflow-store";
-import { useGenerateBusinessIdeas } from "@/hooks/useApiMutations";
+import { generateBusinessIdeasAction } from "@/app/actions";
 import { RetryableErrorDisplay } from "@/components/ui/error-display";
 import { CreativityLevel } from "@/lib/types";
 import { WorkflowHeader, WorkflowNavigation, SelectableCard } from "./shared";
@@ -52,34 +52,35 @@ export function StepCreativityLevelSelection() {
     goToPreviousStep,
   } = useWorkflowStore();
 
-  const generateBusinessIdeasMutation = useGenerateBusinessIdeas();
+  const [isPending, startTransition] = useTransition();
 
   const handleLevelSelect = useCallback((option: typeof creativityOptions[0]) => {
     setCreativityLevel(option.level);
   }, [setCreativityLevel]);
 
-  const handleNext = useCallback(async () => {
-    if (!selectedPersona) {
-      setError("ペルソナが選択されていません");
+  const handleNext = useCallback(() => {
+    if (!selectedPersona || isPending) {
+      if (!selectedPersona) {
+        setError("ペルソナが選択されていません");
+      }
       return;
     }
 
-    try {
-      setError(null);
-      const businessIdeas = await generateBusinessIdeasMutation.mutateAsync({
+    setError(null);
+    startTransition(async () => {
+      const result = await generateBusinessIdeasAction({
         persona: selectedPersona,
         creativityLevel,
       });
-      setBusinessIdeas(businessIdeas);
-      goToNextStep();
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "ビジネスアイデアの生成に失敗しました"
-      );
-    }
-  }, [selectedPersona, creativityLevel, setError, generateBusinessIdeasMutation, setBusinessIdeas, goToNextStep]);
+
+      if (result.success) {
+        setBusinessIdeas(result.data);
+        goToNextStep();
+      } else {
+        setError(result.error);
+      }
+    });
+  }, [selectedPersona, creativityLevel, isPending, setError, setBusinessIdeas, goToNextStep]);
 
   return (
     <motion.div
@@ -144,8 +145,8 @@ export function StepCreativityLevelSelection() {
         onPrevious={goToPreviousStep}
         onNext={handleNext}
         isNextDisabled={!creativityLevel}
-        isLoading={generateBusinessIdeasMutation.isLoading}
-        nextLabel={generateBusinessIdeasMutation.isLoading ? "ビジネスアイデアを生成中..." : "ビジネスアイデアを生成"}
+        isLoading={isPending}
+        nextLabel={isPending ? "ビジネスアイデアを生成中..." : "ビジネスアイデアを生成"}
         nextVariant="gradient"
       />
     </motion.div>
